@@ -10,6 +10,7 @@ import com.sssms.portal.repository.StudentRepository;
 import com.sssms.portal.repository.UserRepository;
 import com.sssms.portal.service.AuthService;
 import lombok.RequiredArgsConstructor;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -35,14 +36,17 @@ public class AuthController {
     private final StudentRepository studentRepository;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<?> register(@RequestBody RegisterRequest request, HttpServletRequest httpRequest) {
+        httpRequest.setAttribute("LOGGED_IN_EMAIL", request.getEmail());
         service.register(request);
         return ResponseEntity.ok("User registered successfully");
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody AuthenticationRequest request) {
+    public ResponseEntity<?> login(@RequestBody AuthenticationRequest request, HttpServletRequest httpRequest) {
         UserDetails userDetails = service.authenticateForCookie(request);
+        httpRequest.setAttribute("LOGGED_IN_EMAIL", request.getEmail());
+        httpRequest.setAttribute("LOGGED_IN_ROLE", userDetails.getAuthorities().iterator().next().getAuthority());
         ResponseCookie jwtCookie = jwtUtil.generateJwtCookie(userDetails);
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())

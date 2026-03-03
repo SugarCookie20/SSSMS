@@ -16,7 +16,8 @@ import {
   BookOpen,
   Calendar,
   Menu,
-  X
+  X,
+  ScrollText
 } from 'lucide-react';
 
 const AdminLayout = () => {
@@ -47,6 +48,7 @@ const AdminLayout = () => {
     { name: 'Exam Schedules', href: '/admin/manage-exams', icon: Calendar },
     { name: 'Timetables', href: '/admin/manage-timetables', icon: Calendar },
     { name: 'GPA Ledger', href: '/admin/gpa', icon: BarChart3 },
+    { name: 'Activity Logs', href: '/admin/logs', icon: ScrollText },
   ];
 
   return (
