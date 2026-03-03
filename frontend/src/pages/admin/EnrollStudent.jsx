@@ -308,7 +308,7 @@ const EnrollStudent = () => {
                   <option value="CAP_ROUND_2">CAP Round II</option>
                   <option value="CAP_ROUND_3">CAP Round III</option>
                   <option value="VACANCY_AGAINST_CAP">Vacancy Against CAP</option>
-                  <option value="INSTITUTE_LEVEL">Institute Level</option>
+                  <option value="INSTITUTE_LEVEL">Institute Level Seat</option>
                 </select>
               </div>
 

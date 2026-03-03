@@ -13,7 +13,7 @@ import java.time.LocalDate;
 public class Assessment {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) private Long id;
     private String title;
-    @Enumerated(EnumType.STRING) private AssessmentType type;
+    @Enumerated(EnumType.STRING) private ExamType type;
     private int maxMarks;
     private LocalDate date;
     @ManyToOne @JoinColumn(name = "allocation_id") private SubjectAllocation allocation;

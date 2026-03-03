@@ -1,6 +1,6 @@
 package com.sssms.portal.dto.request;
 
-import com.sssms.portal.entity.AssessmentType;
+import com.sssms.portal.entity.ExamType;
 import lombok.Data;
 import java.util.List;
 
@@ -8,7 +8,7 @@ import java.util.List;
 public class AssessmentRequest {
     private Long allocationId;
     private String title;
-    private AssessmentType type;
+    private ExamType type;
     private int maxMarks;
     private List<StudentMarkEntry> marks;
 
