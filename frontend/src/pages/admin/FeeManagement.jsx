@@ -4,6 +4,7 @@ import {
     Banknote, CheckCircle, AlertCircle, Search, XCircle,
     Bell, Trash2, Plus, AlertTriangle, Users
 } from 'lucide-react';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 
 const FeeManagement = () => {
     const [records, setRecords] = useState([]);
@@ -15,6 +16,7 @@ const FeeManagement = () => {
 
     // Toast Status State
     const [status, setStatus] = useState({ type: '', message: '' });
+    const [confirm, setConfirm] = useState(null);
 
     // Fee Reminders State
     const [reminders, setReminders] = useState([]);
@@ -91,16 +93,20 @@ const FeeManagement = () => {
         }
     };
 
-    const handleDeleteReminder = async (id) => {
-        if (!window.confirm('Delete this reminder?')) return;
-        try {
-            await api.delete(`/admin/fees/reminders/${id}`);
-            fetchReminders();
-            setStatus({ type: 'success', message: 'Reminder deleted.' });
-            setTimeout(() => setStatus({ type: '', message: '' }), 3000);
-        } catch {
-            setStatus({ type: 'error', message: 'Failed to delete reminder.' });
-        }
+    const handleDeleteReminder = (id) => {
+        setConfirm({
+            message: 'Delete this reminder?',
+            onConfirm: async () => {
+                try {
+                    await api.delete(`/admin/fees/reminders/${id}`);
+                    fetchReminders();
+                    setStatus({ type: 'success', message: 'Reminder deleted.' });
+                    setTimeout(() => setStatus({ type: '', message: '' }), 3000);
+                } catch {
+                    setStatus({ type: 'error', message: 'Failed to delete reminder.' });
+                }
+            },
+        });
     };
 
     const handleScholarshipUpdate = async (studentId, newStatus) => {
@@ -490,6 +496,8 @@ const FeeManagement = () => {
                     </div>
                 </div>
             )}
+
+            <ConfirmDialog config={confirm} onClose={() => setConfirm(null)} />
         </div>
     );
 };

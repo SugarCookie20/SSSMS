@@ -28,10 +28,11 @@ const StudentResources = () => {
     const handleDownload = async (fileName, title) => {
         try {
             const response = await api.get(`/resources/download/${fileName}`, { responseType: 'blob' });
+            const ext = fileName.includes('.') ? fileName.substring(fileName.lastIndexOf('.')) : '';
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', title + ".pdf");
+            link.setAttribute('download', title + ext);
             document.body.appendChild(link);
             link.click();
             link.remove();

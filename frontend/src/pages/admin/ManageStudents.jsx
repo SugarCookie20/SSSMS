@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axiosConfig';
 import { Search, Edit2, Save, X, User, BookOpen, Plus, Trash2, CheckCircle, AlertTriangle, AlertCircle, Eye } from 'lucide-react';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 
 const ManageStudents = () => {
     const navigate = useNavigate();
+    const [confirmDlg, setConfirmDlg] = useState(null);
 
     // Data State
     const [students, setStudents] = useState([]);
@@ -105,18 +107,22 @@ const ManageStudents = () => {
         }
     };
 
-    const removeCourse = async (allocationId) => {
-        if(!window.confirm("Remove this extra course?")) return;
-        setModalStatus(null);
-        try {
-            await api.delete(`/admin/student/${selectedStudent.id}/course/${allocationId}`);
-            setModalStatus({ type: 'success', msg: "Course Removed" });
-            fetchStudents();
-            const updatedExtras = selectedStudent.extraCourses.filter(c => c.id !== allocationId);
-            setSelectedStudent({ ...selectedStudent, extraCourses: updatedExtras });
-        } catch (e) {
-            setModalStatus({ type: 'error', msg: "Failed to remove." });
-        }
+    const removeCourse = (allocationId) => {
+        setConfirmDlg({
+            message: 'Remove this extra course?',
+            onConfirm: async () => {
+                setModalStatus(null);
+                try {
+                    await api.delete(`/admin/student/${selectedStudent.id}/course/${allocationId}`);
+                    setModalStatus({ type: 'success', msg: "Course Removed" });
+                    fetchStudents();
+                    const updatedExtras = selectedStudent.extraCourses.filter(c => c.id !== allocationId);
+                    setSelectedStudent({ ...selectedStudent, extraCourses: updatedExtras });
+                } catch {
+                    setModalStatus({ type: 'error', msg: "Failed to remove." });
+                }
+            },
+        });
     };
 
     // 4. Edit Logic
@@ -371,6 +377,8 @@ const ManageStudents = () => {
                     </div>
                 </div>
             )}
+
+            <ConfirmDialog config={confirmDlg} onClose={() => setConfirmDlg(null)} />
         </div>
     );
 };

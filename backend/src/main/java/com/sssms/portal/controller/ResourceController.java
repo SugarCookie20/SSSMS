@@ -56,6 +56,15 @@ public class ResourceController {
         return ResponseEntity.ok(transformResources(resources));
     }
 
+    @DeleteMapping("/{resourceId}")
+    public ResponseEntity<?> deleteResource(@PathVariable Long resourceId) {
+        AcademicResource resource = resourceRepository.findById(resourceId)
+                .orElseThrow(() -> new RuntimeException("Resource not found"));
+        fileStorageService.deleteFile(resource.getFileName());
+        resourceRepository.deleteById(resourceId);
+        return ResponseEntity.ok("Resource deleted successfully");
+    }
+
     @GetMapping("/student/{subjectCode}")
     public ResponseEntity<List<Map<String, Object>>> getResourcesBySubject(@PathVariable String subjectCode) {
         List<AcademicResource> resources = resourceRepository.findBySubjectCode(subjectCode);
@@ -76,7 +85,10 @@ public class ResourceController {
         Resource resource = fileStorageService.loadFileAsResource(fileName);
 
         String contentType = "application/pdf";
-        if (fileName.endsWith(".jpg") || fileName.endsWith(".png")) contentType = "image/jpeg";
+        String lower = fileName.toLowerCase();
+        if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) contentType = "image/jpeg";
+        else if (lower.endsWith(".png")) contentType = "image/png";
+        else if (lower.endsWith(".gif")) contentType = "image/gif";
 
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))

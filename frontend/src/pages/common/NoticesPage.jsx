@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../api/axiosConfig';
 import { useAuth } from '../../auth/useAuth';
-import { Bell, Megaphone, Send, Clock, User, CheckCircle, XCircle, Paperclip, Download } from 'lucide-react';
+import { Bell, Megaphone, Send, Clock, User, CheckCircle, XCircle, Paperclip, Download, Camera } from 'lucide-react';
+import CameraCapture from '../../components/ui/CameraCapture';
 
 const NoticesPage = () => {
     const { user } = useAuth();
     const [notices, setNotices] = useState([]);
+    const [showCamera, setShowCamera] = useState(false);
 
     // Updated State for File
     const [title, setTitle] = useState('');
@@ -67,10 +69,11 @@ const NoticesPage = () => {
     const handleDownload = async (fileName) => {
         try {
             const response = await api.get(`/notices/download/${fileName}`, { responseType: 'blob' });
+            const ext = fileName.includes('.') ? fileName.substring(fileName.lastIndexOf('.')) : '';
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', "attachment.pdf"); // Browser will detect real extension usually
+            link.setAttribute('download', "attachment" + ext);
             document.body.appendChild(link);
             link.click();
             link.remove();
@@ -137,19 +140,27 @@ const NoticesPage = () => {
 
                         <div className="flex justify-between items-center">
                             {/* File Input */}
-                            <div className="flex items-center">
+                            <div className="flex items-center gap-2">
                                 <label htmlFor="notice-file" className="cursor-pointer flex items-center text-gray-500 hover:text-blue-600 text-sm">
-                                    <Paperclip className="w-4 h-4 mr-2" />
-                                    {file ? file.name : "Attach File (Optional)"}
+                                    <Paperclip className="w-4 h-4 mr-1.5" />
+                                    {file ? file.name : "Attach File"}
                                 </label>
                                 <input
                                     id="notice-file"
                                     type="file"
                                     className="hidden"
+                                    accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png"
                                     onChange={(e) => setFile(e.target.files[0])}
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowCamera(true)}
+                                    className="flex items-center text-gray-500 hover:text-blue-600 text-sm border border-gray-200 rounded-lg px-2 py-1"
+                                >
+                                    <Camera className="w-4 h-4 mr-1" /> Camera
+                                </button>
                                 {file && (
-                                    <button type="button" onClick={() => setFile(null)} className="ml-2 text-red-500 hover:text-red-700">
+                                    <button type="button" onClick={() => setFile(null)} className="text-red-500 hover:text-red-700">
                                         <XCircle className="w-4 h-4" />
                                     </button>
                                 )}
@@ -198,6 +209,12 @@ const NoticesPage = () => {
                     </div>
                 ))}
             </div>
+
+            <CameraCapture
+                open={showCamera}
+                onClose={() => setShowCamera(false)}
+                onCapture={(f) => { setFile(f); setShowCamera(false); }}
+            />
         </div>
     );
 };

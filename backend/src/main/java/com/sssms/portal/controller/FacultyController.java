@@ -71,6 +71,30 @@ public class FacultyController {
         return ResponseEntity.ok(facultyService.markAttendance(request));
     }
 
+    @GetMapping("/attendance/{allocationId}/date")
+    public ResponseEntity<?> getAttendanceForDate(
+            @PathVariable Long allocationId,
+            @RequestParam String date) {
+        return ResponseEntity.ok(facultyService.getAttendanceForDate(allocationId, LocalDate.parse(date)));
+    }
+
+    @PutMapping("/attendance/{sessionId}")
+    public ResponseEntity<String> updateAttendance(
+            @PathVariable Long sessionId,
+            @RequestBody AttendanceRequest request) {
+        return ResponseEntity.ok(facultyService.updateAttendance(sessionId, request));
+    }
+
+    @DeleteMapping("/attendance/{sessionId}")
+    public ResponseEntity<String> deleteAttendanceSession(@PathVariable Long sessionId) {
+        return ResponseEntity.ok(facultyService.deleteAttendanceSession(sessionId));
+    }
+
+    @GetMapping("/attendance/{allocationId}/sessions")
+    public ResponseEntity<?> getAttendanceSessions(@PathVariable Long allocationId) {
+        return ResponseEntity.ok(facultyService.getSessionsForAllocation(allocationId));
+    }
+
     @GetMapping("/report/{allocationId}")
     public ResponseEntity<?> getAttendanceReport(
             @PathVariable Long allocationId,
@@ -105,6 +129,24 @@ public class FacultyController {
                     .contentType(MediaType.parseMediaType("application/csv"))
                     .body(file);
         }
+
+    @GetMapping("/report/pdf/{allocationId}")
+    public ResponseEntity<Resource> downloadAttendancePDF(
+            @PathVariable Long allocationId,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate
+    ) {
+        LocalDate start = (startDate != null && !startDate.isEmpty()) ? LocalDate.parse(startDate) : null;
+        LocalDate end = (endDate != null && !endDate.isEmpty()) ? LocalDate.parse(endDate) : null;
+
+        InputStreamResource file = new InputStreamResource(facultyService.generateAttendancePDF(allocationId, start, end));
+        String filename = "Attendance_Report_" + allocationId + ".html";
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+                .contentType(MediaType.parseMediaType("text/html; charset=UTF-8"))
+                .body(file);
+    }
 
     @GetMapping("/student/{id}/profile")
         public ResponseEntity<?> getStudentProfile(

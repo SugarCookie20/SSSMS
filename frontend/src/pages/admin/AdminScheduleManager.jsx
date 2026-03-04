@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import api from '../../api/axiosConfig';
 import {
     Clock, Calendar, BookOpen, GraduationCap,
-    CheckCircle, XCircle, Users, User, Trash2, Eye
+    CheckCircle, XCircle, Users, User, Trash2, Eye, Camera
 } from 'lucide-react';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
+import CameraCapture from '../../components/ui/CameraCapture';
 
 const TABS = [
     { key: 'timetable', label: 'Class Timetable', icon: Clock, color: 'blue' },
@@ -23,6 +25,8 @@ const formatYear = (str) => str.replace(/_/g, ' ').replace(/(^\w|\s\w)/g, (m) =>
 
 const AdminScheduleManager = () => {
     const [activeTab, setActiveTab] = useState('timetable');
+    const [confirm, setConfirm] = useState(null);
+    const [showCamera, setShowCamera] = useState(false);
 
     // Shared data
     const [years, setYears] = useState([]);
@@ -108,20 +112,24 @@ const AdminScheduleManager = () => {
         }
     };
 
-    const handleDelete = async (year, type) => {
+    const handleDelete = (year, type) => {
         const labels = { calendar: 'College Calendar', academic: 'Academic Schedule' };
-        if (!window.confirm(`Delete ${labels[type]} for ${formatYear(year)}?`)) return;
-        try {
-            const url = type === 'calendar'
-                ? `/schedules/college-calendar/${year}`
-                : `/schedules/academic-schedule/${year}`;
-            await api.delete(url);
-            setStatus({ type: 'success', msg: 'Deleted successfully!' });
-            await fetchData();
-            setTimeout(() => setStatus(null), 3000);
-        } catch {
-            setStatus({ type: 'error', msg: 'Delete failed.' });
-        }
+        setConfirm({
+            message: `Delete ${labels[type]} for ${formatYear(year)}?`,
+            onConfirm: async () => {
+                try {
+                    const url = type === 'calendar'
+                        ? `/schedules/college-calendar/${year}`
+                        : `/schedules/academic-schedule/${year}`;
+                    await api.delete(url);
+                    setStatus({ type: 'success', msg: 'Deleted successfully!' });
+                    await fetchData();
+                    setTimeout(() => setStatus(null), 3000);
+                } catch {
+                    setStatus({ type: 'error', msg: 'Delete failed.' });
+                }
+            },
+        });
     };
 
     const tabObj = TABS.find((t) => t.key === activeTab);
@@ -223,7 +231,7 @@ const AdminScheduleManager = () => {
                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-10 text-center bg-gray-50 hover:border-indigo-500 transition-colors cursor-pointer group">
                         <input
                             type="file"
-                            accept=".pdf"
+                            accept=".pdf,.jpg,.jpeg,.png"
                             onChange={(e) => setFile(e.target.files[0])}
                             className="hidden"
                             id="admin-schedule-upload"
@@ -234,10 +242,17 @@ const AdminScheduleManager = () => {
                                 <tabObj.icon className={`w-8 h-8 ${colorMap[tabObj.color].icon}`} />
                             </div>
                             <span className="text-gray-900 font-medium block text-lg">
-                                {file ? file.name : 'Click to Upload PDF'}
+                                {file ? file.name : 'Click to Upload File'}
                             </span>
-                            <span className="text-xs text-gray-500 mt-1 block">PDF Format Only (Max 10MB)</span>
+                            <span className="text-xs text-gray-500 mt-1 block">PDF or Images (Max 10MB)</span>
                         </label>
+                        <button
+                            type="button"
+                            onClick={() => setShowCamera(true)}
+                            className="inline-flex items-center mt-3 px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm text-gray-600 hover:border-indigo-400 hover:text-indigo-600 transition-colors"
+                        >
+                            <Camera className="w-4 h-4 mr-1.5" /> Take Photo
+                        </button>
                     </div>
 
                     <button
@@ -312,6 +327,12 @@ const AdminScheduleManager = () => {
                     </div>
                 </div>
             )}
+            <ConfirmDialog config={confirm} onClose={() => setConfirm(null)} />
+            <CameraCapture
+                open={showCamera}
+                onClose={() => setShowCamera(false)}
+                onCapture={(f) => { setFile(f); setShowCamera(false); }}
+            />
         </div>
     );
 };

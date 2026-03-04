@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../api/axiosConfig';
-import { Upload, FileText, Download, ArrowLeft, CheckCircle, XCircle } from 'lucide-react';
+import { Upload, FileText, Download, ArrowLeft, CheckCircle, XCircle, Trash2, Camera } from 'lucide-react';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
+import CameraCapture from '../../components/ui/CameraCapture';
 
 const ResourceCenter = () => {
     const { id } = useParams();
@@ -11,9 +13,9 @@ const ResourceCenter = () => {
     const [file, setFile] = useState(null);
     const [title, setTitle] = useState('');
     const [uploading, setUploading] = useState(false);
-
-    // Status State
     const [status, setStatus] = useState({ type: '', message: '' });
+    const [confirm, setConfirm] = useState(null);
+    const [showCamera, setShowCamera] = useState(false);
 
     const fetchResources = async () => {
         try {
@@ -68,10 +70,11 @@ const ResourceCenter = () => {
                 responseType: 'blob',
             });
 
+            const ext = fileName.includes('.') ? fileName.substring(fileName.lastIndexOf('.')) : '';
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', displayTitle + ".pdf");
+            link.setAttribute('download', displayTitle + ext);
             document.body.appendChild(link);
             link.click();
             link.remove();
@@ -79,6 +82,22 @@ const ResourceCenter = () => {
             console.error("Download failed");
             setStatus({ type: 'error', message: 'Download failed.' });
         }
+    };
+
+    const handleDelete = (resourceId) => {
+        setConfirm({
+            message: 'Delete this resource? This cannot be undone.',
+            onConfirm: async () => {
+                try {
+                    await api.delete(`/resources/${resourceId}`);
+                    setStatus({ type: 'success', message: 'Resource deleted successfully.' });
+                    fetchResources();
+                    setTimeout(() => setStatus({ type: '', message: '' }), 3000);
+                } catch {
+                    setStatus({ type: 'error', message: 'Failed to delete resource.' });
+                }
+            },
+        });
     };
 
     return (
@@ -127,6 +146,7 @@ const ResourceCenter = () => {
                             onChange={(e) => setFile(e.target.files[0])}
                             className="hidden"
                             id="file-upload"
+                            accept=".pdf,.ppt,.pptx,.doc,.docx,.jpg,.jpeg,.png"
                             required
                         />
                         <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center">
@@ -134,8 +154,15 @@ const ResourceCenter = () => {
                             <span className="text-sm font-medium text-purple-600 hover:text-purple-500">
                 {file ? file.name : "Click to select a file"}
               </span>
-                            <span className="text-xs text-gray-500 mt-1">PDF, PPT, DOCX (Max 10MB)</span>
+                            <span className="text-xs text-gray-500 mt-1">PDF, PPT, DOCX, Images (Max 10MB)</span>
                         </label>
+                        <button
+                            type="button"
+                            onClick={() => setShowCamera(true)}
+                            className="inline-flex items-center mt-3 px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm text-gray-600 hover:border-purple-400 hover:text-purple-600 transition-colors"
+                        >
+                            <Camera className="w-4 h-4 mr-1.5" /> Take Photo
+                        </button>
                     </div>
 
                     <button
@@ -164,17 +191,33 @@ const ResourceCenter = () => {
                                     <p className="text-xs text-gray-500 mt-0.5">Uploaded on {new Date(res.date).toLocaleDateString()}</p>
                                 </div>
                             </div>
-                            <button
-                                onClick={() => handleDownload(res.fileName, res.title)}
-                                className="text-gray-400 hover:text-blue-600 transition-colors p-2 rounded-full hover:bg-blue-50"
-                                title="Download"
-                            >
-                                <Download className="w-5 h-5" />
-                            </button>
+                            <div className="flex items-center gap-1">
+                                <button
+                                    onClick={() => handleDownload(res.fileName, res.title)}
+                                    className="text-gray-400 hover:text-blue-600 transition-colors p-2 rounded-full hover:bg-blue-50"
+                                    title="Download"
+                                >
+                                    <Download className="w-5 h-5" />
+                                </button>
+                                <button
+                                    onClick={() => handleDelete(res.id)}
+                                    className="text-gray-400 hover:text-red-600 transition-colors p-2 rounded-full hover:bg-red-50"
+                                    title="Delete"
+                                >
+                                    <Trash2 className="w-5 h-5" />
+                                </button>
+                            </div>
                         </div>
                     ))
                 )}
             </div>
+
+            <ConfirmDialog config={confirm} onClose={() => setConfirm(null)} />
+            <CameraCapture
+                open={showCamera}
+                onClose={() => setShowCamera(false)}
+                onCapture={(f) => { setFile(f); setShowCamera(false); }}
+            />
         </div>
     );
 };

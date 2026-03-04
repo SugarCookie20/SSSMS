@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api/axiosConfig';
-import { Upload, User, Users, CheckCircle, XCircle } from 'lucide-react';
+import { Upload, User, Users, CheckCircle, XCircle, Camera } from 'lucide-react';
+import CameraCapture from '../../components/ui/CameraCapture';
 
 const ManageTimetables = () => {
     // Data
+    const [showCamera, setShowCamera] = useState(false);
     const [facultyList, setFacultyList] = useState([]);
     const [years, setYears] = useState([]); // Replaced classes with years
 
@@ -117,12 +119,15 @@ const ManageTimetables = () => {
                     </div>
 
                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-10 text-center bg-gray-50 hover:border-indigo-500 transition-colors cursor-pointer group">
-                        <input type="file" accept=".pdf" onChange={(e) => setFile(e.target.files[0])} className="hidden" id="tt-upload" required />
+                        <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => setFile(e.target.files[0])} className="hidden" id="tt-upload" required />
                         <label htmlFor="tt-upload" className="cursor-pointer block w-full h-full">
                             <Upload className="w-10 h-10 text-gray-400 mx-auto mb-3 group-hover:scale-110 transition-transform" />
-                            <span className="text-gray-900 font-medium block text-lg">{file ? file.name : "Click to select PDF"}</span>
-                            <span className="text-xs text-gray-500 mt-1 block">Supported: .pdf (Max 10MB)</span>
+                            <span className="text-gray-900 font-medium block text-lg">{file ? file.name : "Click to select file"}</span>
+                            <span className="text-xs text-gray-500 mt-1 block">PDF or Images (Max 10MB)</span>
                         </label>
+                        <button type="button" onClick={() => setShowCamera(true)} className="inline-flex items-center mt-3 px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm text-gray-600 hover:border-indigo-400 hover:text-indigo-600 transition-colors">
+                            <Camera className="w-4 h-4 mr-1.5" /> Take Photo
+                        </button>
                     </div>
 
                     <button
@@ -134,6 +139,12 @@ const ManageTimetables = () => {
                     </button>
                 </form>
             </div>
+
+            <CameraCapture
+                open={showCamera}
+                onClose={() => setShowCamera(false)}
+                onCapture={(f) => { setFile(f); setShowCamera(false); }}
+            />
         </div>
     );
 };

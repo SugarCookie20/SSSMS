@@ -4,6 +4,7 @@ import { useAuth } from '../../auth/useAuth';
 import {
     Award, Plus, Trash2, CheckCircle, XCircle, Calendar, Building2, BookOpen
 } from 'lucide-react';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 
 const PD_TYPES = [
     { value: 'WORKSHOP', label: 'Workshop' },
@@ -33,6 +34,7 @@ const ProfessionalDevelopment = () => {
     const [entries, setEntries] = useState([]);
     const [showForm, setShowForm] = useState(false);
     const [status, setStatus] = useState({ type: '', message: '' });
+    const [confirm, setConfirm] = useState(null);
 
     // Admin: faculty selection
     const [facultyList, setFacultyList] = useState([]);
@@ -90,17 +92,21 @@ const ProfessionalDevelopment = () => {
         }
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Delete this entry?')) return;
-        try {
-            const url = isAdmin ? `/admin/pd/${id}` : `/faculty/professional-development/${id}`;
-            await api.delete(url);
-            setStatus({ type: 'success', message: 'Entry deleted.' });
-            isAdmin ? fetchEntries(selectedFacultyId) : fetchEntries();
-            setTimeout(() => setStatus({ type: '', message: '' }), 3000);
-        } catch {
-            setStatus({ type: 'error', message: 'Failed to delete entry.' });
-        }
+    const handleDelete = (id) => {
+        setConfirm({
+            message: 'Delete this entry?',
+            onConfirm: async () => {
+                try {
+                    const url = isAdmin ? `/admin/pd/${id}` : `/faculty/professional-development/${id}`;
+                    await api.delete(url);
+                    setStatus({ type: 'success', message: 'Entry deleted.' });
+                    isAdmin ? fetchEntries(selectedFacultyId) : fetchEntries();
+                    setTimeout(() => setStatus({ type: '', message: '' }), 3000);
+                } catch {
+                    setStatus({ type: 'error', message: 'Failed to delete entry.' });
+                }
+            },
+        });
     };
 
     const canAdd = isFaculty || (isAdmin && selectedFacultyId);
@@ -286,6 +292,8 @@ const ProfessionalDevelopment = () => {
                     <p>{isAdmin && !selectedFacultyId ? 'Select a faculty member to view their entries.' : 'No professional development entries yet.'}</p>
                 </div>
             )}
+
+            <ConfirmDialog config={confirm} onClose={() => setConfirm(null)} />
         </div>
     );
 };

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api/axiosConfig';
 import { BookOpen, Plus, CheckCircle, XCircle, Trash2 } from 'lucide-react';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 
 const AcademicSetup = () => {
     const [subject, setSubject] = useState({
@@ -12,6 +13,7 @@ const AcademicSetup = () => {
 
     const [existingSubjects, setExistingSubjects] = useState([]);
     const [status, setStatus] = useState(null);
+    const [confirm, setConfirm] = useState(null);
 
     const fetchSubjects = async () => {
         try {
@@ -40,14 +42,18 @@ const AcademicSetup = () => {
         }
     };
 
-    const handleDelete = async (id) => {
-        if(!window.confirm("Are you sure you want to delete this subject?")) return;
-        try {
-            await api.delete(`/admin/subject/${id}`);
-            fetchSubjects();
-        } catch(e) {
-            alert("Failed to delete subject");
-        }
+    const handleDelete = (id) => {
+        setConfirm({
+            message: 'Are you sure you want to delete this subject?',
+            onConfirm: async () => {
+                try {
+                    await api.delete(`/admin/subject/${id}`);
+                    fetchSubjects();
+                } catch {
+                    setStatus({ type: 'error', msg: 'Failed to delete subject.' });
+                }
+            },
+        });
     };
 
     const formatYear = (str) => str.replace('_', ' ').replace(/(^\w|\s\w)/g, m => m.toUpperCase());
@@ -170,6 +176,8 @@ const AcademicSetup = () => {
                     </table>
                 </div>
             </div>
+
+            <ConfirmDialog config={confirm} onClose={() => setConfirm(null)} />
         </div>
     );
 };

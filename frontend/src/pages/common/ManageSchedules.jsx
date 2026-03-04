@@ -4,15 +4,17 @@ import {
     Upload, BookOpen, CheckCircle, XCircle,
     Trash2, Eye, GraduationCap
 } from 'lucide-react';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 
 const ManageSchedules = () => {
     const [years, setYears] = useState([]);
-    const [scheduleType, setScheduleType] = useState('CALENDAR'); // CALENDAR or ACADEMIC
+    const [scheduleType, setScheduleType] = useState('CALENDAR');
     const [selectedYear, setSelectedYear] = useState('');
     const [file, setFile] = useState(null);
     const [status, setStatus] = useState(null);
     const [loading, setLoading] = useState(false);
     const [scheduleStatus, setScheduleStatus] = useState([]);
+    const [confirm, setConfirm] = useState(null);
 
     const fetchData = async () => {
         try {
@@ -61,20 +63,23 @@ const ManageSchedules = () => {
         }
     };
 
-    const handleDelete = async (year, type) => {
-        if (!window.confirm(`Are you sure you want to delete the ${type === 'CALENDAR' ? 'College Calendar' : 'Academic Schedule'} for ${formatYear(year)}?`)) return;
-
-        try {
-            const url = type === 'CALENDAR'
-                ? `/schedules/college-calendar/${year}`
-                : `/schedules/academic-schedule/${year}`;
-            await api.delete(url);
-            setStatus({ type: 'success', msg: 'Deleted successfully!' });
-            await fetchData();
-            setTimeout(() => setStatus(null), 3000);
-        } catch {
-            setStatus({ type: 'error', msg: 'Delete failed.' });
-        }
+    const handleDelete = (year, type) => {
+        setConfirm({
+            message: `Delete the ${type === 'CALENDAR' ? 'College Calendar' : 'Academic Schedule'} for ${formatYear(year)}?`,
+            onConfirm: async () => {
+                try {
+                    const url = type === 'CALENDAR'
+                        ? `/schedules/college-calendar/${year}`
+                        : `/schedules/academic-schedule/${year}`;
+                    await api.delete(url);
+                    setStatus({ type: 'success', msg: 'Deleted successfully!' });
+                    await fetchData();
+                    setTimeout(() => setStatus(null), 3000);
+                } catch {
+                    setStatus({ type: 'error', msg: 'Delete failed.' });
+                }
+            },
+        });
     };
 
     const formatYear = (str) => str.replace(/_/g, ' ').replace(/(^\w|\s\w)/g, (m) => m.toUpperCase());
@@ -247,6 +252,8 @@ const ManageSchedules = () => {
                     </table>
                 </div>
             </div>
+
+            <ConfirmDialog config={confirm} onClose={() => setConfirm(null)} />
         </div>
     );
 };
