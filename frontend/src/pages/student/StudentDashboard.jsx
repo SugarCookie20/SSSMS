@@ -5,10 +5,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import api from '../../api/axiosConfig';
 import { useAuth } from '../../auth/useAuth';
 import {
-    Calendar,
+    CalendarDays,
     Target,
     Book,
-    Clock,
     Bell,
     TrendingUp,
     TrendingDown
@@ -45,9 +44,9 @@ const StudentDashboard = () => {
         : 0;
 
     const quickAccessCards = [
-        { title: 'Exam Schedule', subtitle: 'View upcoming examinations', icon: Calendar, color: 'blue', href: '/student/exam-schedule' },
+        { title: 'Schedules', subtitle: 'Timetable, exams, calendar & more', icon: CalendarDays, color: 'blue', href: '/student/schedules' },
         { title: 'Results', subtitle: 'Check your examination results', icon: Target, color: 'green', href: '/student/results' },
-        { title: 'Class Timetable', subtitle: 'View your weekly schedule', icon: Clock, color: 'indigo', href: '/student/timetable' },
+        { title: 'Resources', subtitle: 'Access study materials', icon: Book, color: 'indigo', href: '/student/notices' },
         { title: 'Notice Board', subtitle: 'Check the latest announcements', icon: Bell, color: 'orange', href: '/student/notices' },
     ];
 

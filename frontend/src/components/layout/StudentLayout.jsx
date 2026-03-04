@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../auth/useAuth';
 import {
-    LayoutDashboard, User, LogOut, BookOpen, Calendar, Target,
-    FileText, Clock, Bell, Menu, X
+    LayoutDashboard, User, LogOut, CalendarDays, Target,
+    Bell, Menu, X
 } from 'lucide-react';
 
 const StudentLayout = () => {
@@ -22,10 +22,9 @@ const StudentLayout = () => {
 
     const navItems = [
         { name: 'Dashboard', href: '/student/dashboard', icon: LayoutDashboard },
+        { name: 'Schedules', href: '/student/schedules', icon: CalendarDays },
         { name: 'Results', href: '/student/results', icon: Target },
         { name: 'Notices', href: '/student/notices', icon: Bell },
-        { name: 'Class Timetable', href: '/student/timetable', icon: Clock },
-        { name: 'Exam Schedule', href: '/student/exam-schedule', icon: Calendar },
     ];
 
     return (

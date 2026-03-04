@@ -17,4 +17,6 @@ public class YearMetadata {
 
     private String timetablePdf;
     private String examSchedulePdf;
+    private String collegeCalendarPdf;
+    private String academicSchedulePdf;
 }

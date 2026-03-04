@@ -25,6 +25,7 @@ import GPALedger from "./pages/admin/GPALedger";
 import ActivityLogs from "./pages/admin/ActivityLogs";
 import ManageFaculty from './pages/admin/ManageFaculty';
 import ManageTimetables from './pages/admin/ManageTimetables';
+import AdminScheduleManager from './pages/admin/AdminScheduleManager';
 import AcademicSetup from './pages/admin/AcademicSetup';
 import ManageStudents from './pages/admin/ManageStudents';
 
@@ -36,10 +37,12 @@ import FacultySubjectList from './pages/faculty/FacultySubjectList';
 import FacultyResultsSubjects from './pages/faculty/FacultyResultsSubjects';
 import GradingSheet from './pages/faculty/GradingSheet';
 import FacultyTimetable from "./pages/faculty/FacultyTimetable";
+import FacultySchedules from "./pages/faculty/FacultySchedules";
 import AttendanceReport from './pages/faculty/AttendanceReport';
 
 import NoticesPage from './pages/common/NoticesPage';
 import UploadExamSchedule from './pages/common/UploadExamSchedule';
+import ManageSchedules from './pages/common/ManageSchedules';
 import StudentProfileView from './pages/common/StudentProfileView';
 import FacultyProfileView from './pages/common/FacultyProfileView';
 import UserProfile from './pages/common/UserProfile';
@@ -51,6 +54,7 @@ import StudentResources from './pages/student/StudentResources';
 import StudentResults from './pages/student/StudentResults';
 import StudentTimetable from './pages/student/StudentTimetable';
 import StudentExamSchedule from './pages/student/StudentExamSchedule';
+import StudentSchedules from './pages/student/StudentSchedules';
 import StudentProfile from './pages/student/StudentProfile';
 import StudentReportCard from './pages/student/StudentReportCard';
 
@@ -77,6 +81,8 @@ function App() {
                 <Route path="manage-faculty" element={<ManageFaculty />} />
                 <Route path="manage-timetables" element={<ManageTimetables />} />
                 <Route path="manage-exams" element={<UploadExamSchedule />} />
+                <Route path="manage-schedules" element={<ManageSchedules />} />
+                <Route path="schedule-manager" element={<AdminScheduleManager />} />
                 <Route path="academic-setup" element={<AcademicSetup />} />
                 <Route path="manage-students" element={<ManageStudents />} />
                 <Route path="student-profile/:id" element={<StudentProfileView />} />
@@ -105,6 +111,8 @@ function App() {
 
                 <Route path="timetable" element={<FacultyTimetable />} />
                 <Route path="exam-schedule" element={<UploadExamSchedule />} />
+                <Route path="manage-schedules" element={<ManageSchedules />} />
+                <Route path="schedules" element={<FacultySchedules />} />
 
                 <Route path="reports" element={<FacultySubjectList mode="report" />} />
                 <Route path="report/:id" element={<AttendanceReport />} />
@@ -119,6 +127,7 @@ function App() {
             {/* ------------------- STUDENT ROUTES ------------------- */}
             <Route path="/student" element={<StudentLayout />}>
               <Route path="dashboard" element={<StudentDashboard />} />
+              <Route path="schedules" element={<StudentSchedules />} />
               <Route path="resources/:subjectCode" element={<StudentResources />} />
               <Route path="notices" element={<NoticesPage />} />
               <Route path="results" element={<StudentResults />} />

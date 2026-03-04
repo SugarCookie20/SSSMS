@@ -7,7 +7,7 @@ import {
     BarChart3,
     AlertTriangle,
     UserPlus,
-    Calendar,
+    CalendarDays,
     BookOpen,
     Briefcase
 } from 'lucide-react';
@@ -73,17 +73,10 @@ const AdminDashboard = () => {
             color: 'green'
         },
         {
-            title: 'Timetable Manager',
-            description: 'Upload Weekly Class Schedules',
-            icon: Calendar,
-            href: '/admin/manage-timetables',
-            color: 'indigo'
-        },
-        {
-            title: 'Exam Schedules',
-            description: 'Publish Exam Time Tables',
-            icon: Calendar,
-            href: '/admin/manage-exams',
+            title: 'Schedule Manager',
+            description: 'Timetables, exams, calendar & more',
+            icon: CalendarDays,
+            href: '/admin/schedule-manager',
             color: 'purple'
         },
     ];

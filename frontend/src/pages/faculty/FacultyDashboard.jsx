@@ -3,12 +3,11 @@ import { Link } from 'react-router-dom';
 import api from '../../api/axiosConfig';
 import { useAuth } from '../../auth/useAuth';
 import {
-    Calendar,
+    CalendarDays,
     Target,
     Book,
     UserCheck,
     Bell,
-    Clock,
     BarChart3
 } from 'lucide-react';
 
@@ -61,18 +60,11 @@ const FacultyDashboard = () => {
             href: '/faculty/notices'
         },
         {
-            title: 'My Timetable',
-            subtitle: 'View your weekly schedule',
-            icon: Clock,
+            title: 'Schedules',
+            subtitle: 'Timetable, exams, calendar & more',
+            icon: CalendarDays,
             color: 'indigo',
-            href: '/faculty/timetable'
-        },
-        {
-            title: 'Exam Schedule',
-            subtitle: 'Upload class exam timetables',
-            icon: Calendar,
-            color: 'blue',
-            href: '/faculty/exam-schedule'
+            href: '/faculty/schedules'
         },
     ];
 

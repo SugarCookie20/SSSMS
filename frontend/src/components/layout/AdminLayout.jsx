@@ -14,7 +14,7 @@ import {
   Banknote,
   Briefcase,
   BookOpen,
-  Calendar,
+  CalendarDays,
   Menu,
   X,
   ScrollText
@@ -45,8 +45,7 @@ const AdminLayout = () => {
     { name: 'Enroll Faculty', href: '/admin/add-faculty', icon: Users },
     { name: 'Manage Workload', href: '/admin/manage-faculty', icon: Briefcase },
     { name: 'Fee Management', href: '/admin/fees', icon: Banknote },
-    { name: 'Exam Schedules', href: '/admin/manage-exams', icon: Calendar },
-    { name: 'Timetables', href: '/admin/manage-timetables', icon: Calendar },
+    { name: 'Schedule Manager', href: '/admin/schedule-manager', icon: CalendarDays },
     { name: 'GPA Ledger', href: '/admin/gpa', icon: BarChart3 },
     { name: 'Activity Logs', href: '/admin/logs', icon: ScrollText },
   ];

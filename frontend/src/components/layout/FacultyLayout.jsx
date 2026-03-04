@@ -9,7 +9,7 @@ import {
     LogOut,
     User,
     Target,
-    Calendar,
+    CalendarDays,
     Menu,
     X
 } from 'lucide-react';
@@ -32,8 +32,7 @@ const FacultyLayout = () => {
         { name: 'Upload Center', href: '/faculty/upload', icon: Upload },
         { name: 'Attendance', href: '/faculty/attendance', icon: UserCheck },
         { name: 'Results & Grading', href: '/faculty/results', icon: Target },
-        { name: 'My Timetable', href: '/faculty/timetable', icon: Calendar },
-        { name: 'Exam Schedule', href: '/faculty/exam-schedule', icon: Calendar },
+        { name: 'Schedules', href: '/faculty/schedules', icon: CalendarDays },
         { name: 'Notices', href: '/faculty/notices', icon: Bell },
     ];
 

@@ -47,8 +47,14 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/timetable/view/**", "/api/exams/view/**").permitAll()
+                .requestMatchers("/api/timetable/view/**", "/api/exams/view/**", "/api/schedules/view/**").permitAll()
                 .requestMatchers("/api/notices/download/**", "/api/resources/download/**").permitAll()
+
+                // Schedule Management (upload/delete) - Faculty & Admin only
+                .requestMatchers(HttpMethod.POST, "/api/schedules/upload/**").hasAnyAuthority("ROLE_FACULTY", "FACULTY", "ROLE_ADMIN", "ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/schedules/**").hasAnyAuthority("ROLE_FACULTY", "FACULTY", "ROLE_ADMIN", "ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/schedules/status").hasAnyAuthority("ROLE_FACULTY", "FACULTY", "ROLE_ADMIN", "ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/schedules/student/me").hasAnyAuthority("ROLE_STUDENT", "STUDENT")
 
                 // Admin Routes
                 .requestMatchers("/api/admin/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN")
