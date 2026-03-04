@@ -35,6 +35,16 @@ public class AdminService {
 
     @Transactional
     public String enrollStudent(StudentEnrollmentRequest request) {
+        // Check if email already exists
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new RuntimeException("Email already exists. Please use a different email address.");
+        }
+
+        // Check if PRN already exists
+        if (studentRepository.findByPrn(request.getPrn()).isPresent()) {
+            throw new RuntimeException("PRN already exists. Please use a different PRN.");
+        }
+
         User newUser = User.builder()
                 .email(request.getEmail())
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
@@ -46,6 +56,7 @@ public class AdminService {
         Student newStudent = Student.builder()
                 .user(savedUser)
                 .firstName(request.getFirstName())
+                .middleName(request.getMiddleName())
                 .lastName(request.getLastName())
                 .prn(request.getPrn())
                 .academicYear(request.getAcademicYear())
@@ -63,7 +74,12 @@ public class AdminService {
                 .build();
         studentRepository.save(newStudent);
 
-        feeRepository.save(FeeRecord.builder().student(newStudent).totalFee(150000.0).paidAmount(0.0).build());
+        feeRepository.save(FeeRecord.builder()
+                .student(newStudent)
+                .totalFee(150000.0)
+                .paidAmount(0.0)
+                .scholarshipAmount(0.0)
+                .build());
         return "Student enrolled successfully with ID: " + savedUser.getUserId();
     }
 

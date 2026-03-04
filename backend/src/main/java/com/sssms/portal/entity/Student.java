@@ -54,6 +54,18 @@ public class Student {
     @Builder.Default
     private ScholarshipStatus scholarshipStatus = ScholarshipStatus.NOT_APPLIED;
 
+    @Column(name = "scholarship_applied", nullable = false, columnDefinition = "BOOLEAN DEFAULT false")
+    @Builder.Default
+    private Boolean scholarshipApplied = false;
+
+    @Column(name = "scholarship_approved", nullable = false, columnDefinition = "BOOLEAN DEFAULT false")
+    @Builder.Default
+    private Boolean scholarshipApproved = false;
+
+    @Column(name = "scholarship_received", nullable = false, columnDefinition = "BOOLEAN DEFAULT false")
+    @Builder.Default
+    private Boolean scholarshipReceived = false;
+
     @ManyToMany(fetch = FetchType.EAGER)
         @JoinTable(
             name = "student_extra_courses",

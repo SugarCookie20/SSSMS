@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 public class AdminController {
 
     private final AdminService adminService;
@@ -58,13 +59,27 @@ public class AdminController {
     }
 
     @PostMapping("/enroll-student")
-    public ResponseEntity<String> enrollStudent(@RequestBody StudentEnrollmentRequest request) {
-        return ResponseEntity.ok(adminService.enrollStudent(request));
+    public ResponseEntity<?> enrollStudent(@RequestBody StudentEnrollmentRequest request) {
+        try {
+            String result = adminService.enrollStudent(request);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
     }
 
     @PostMapping("/enroll-faculty")
-    public ResponseEntity<String> enrollFaculty(@RequestBody FacultyEnrollmentRequest request) {
-        return ResponseEntity.ok(adminService.enrollFaculty(request));
+    public ResponseEntity<?> enrollFaculty(@RequestBody FacultyEnrollmentRequest request) {
+        try {
+            String result = adminService.enrollFaculty(request);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
     }
 
     @PostMapping("/upload-results")

@@ -41,8 +41,44 @@ public class FeeService {
         FeeRecord record = feeRepository.findByStudentId(studentId)
                 .orElseThrow(() -> new RuntimeException("Fee record not initialized for student"));
 
-        record.setPaidAmount(record.getPaidAmount() + amount);
+        // Calculate new paid amount
+        double newPaidAmount = record.getPaidAmount() + amount;
+
+        // Validation: Ensure paid amount doesn't exceed total fee
+        if (newPaidAmount > record.getTotalFee()) {
+            double remainingBalance = record.getTotalFee() - record.getPaidAmount();
+            throw new RuntimeException(
+                "Cannot record payment of ₹" + amount +
+                ". Total fee is ₹" + record.getTotalFee() +
+                " and already paid amount is ₹" + record.getPaidAmount() +
+                ". Remaining balance is only ₹" + remainingBalance + "."
+            );
+        }
+
+        record.setPaidAmount(newPaidAmount);
         record.setLastPaymentDate(LocalDateTime.now());
+        feeRepository.save(record);
+    }
+
+    // 2.5. Update Total Fee (Edit Fixed Fee)
+    @Transactional
+    public void updateTotalFee(Long studentId, double newTotalFee) {
+        FeeRecord record = feeRepository.findByStudentId(studentId)
+                .orElseThrow(() -> new RuntimeException("Fee record not initialized for student"));
+
+        // Calculate effective paid amount (paid + scholarship)
+        double effectivePaid = record.getPaidAmount() + record.getScholarshipAmount();
+
+        // Validation: Ensure paid fee is not more than new total fee
+        if (effectivePaid > newTotalFee) {
+            throw new RuntimeException(
+                "Cannot set total fee to ₹" + newTotalFee +
+                ". Student has already paid/received ₹" + effectivePaid +
+                " (₹" + record.getPaidAmount() + " paid + ₹" + record.getScholarshipAmount() + " scholarship)."
+            );
+        }
+
+        record.setTotalFee(newTotalFee);
         feeRepository.save(record);
     }
 

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import api from '../../api/axiosConfig';
 import {
     Banknote, CheckCircle, AlertCircle, Search, XCircle,
-    Bell, Trash2, Plus, AlertTriangle, Users
+    Bell, Trash2, Plus, AlertTriangle, Users, Edit2
 } from 'lucide-react';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 
@@ -13,6 +13,10 @@ const FeeManagement = () => {
     // Payment Modal State
     const [selectedStudent, setSelectedStudent] = useState(null);
     const [payAmount, setPayAmount] = useState('');
+
+    // Edit Fee Modal State
+    const [editFeeModal, setEditFeeModal] = useState(null);
+    const [newTotalFee, setNewTotalFee] = useState('');
 
     // Toast Status State
     const [status, setStatus] = useState({ type: '', message: '' });
@@ -63,10 +67,23 @@ const FeeManagement = () => {
         e.preventDefault();
         if (!selectedStudent || !payAmount) return;
         setStatus({ type: '', message: '' });
+
+        // Client-side validation
+        const paymentAmount = parseFloat(payAmount);
+        if (paymentAmount <= 0) {
+            setStatus({ type: 'error', message: 'Payment amount must be greater than zero.' });
+            return;
+        }
+
+        if (paymentAmount > selectedStudent.balance) {
+            setStatus({ type: 'error', message: `Payment amount (₹${paymentAmount.toLocaleString()}) cannot exceed the remaining balance (₹${selectedStudent.balance.toLocaleString()}).` });
+            return;
+        }
+
         try {
             await api.post('/admin/fees/pay', {
                 studentId: selectedStudent.studentId,
-                amount: parseFloat(payAmount)
+                amount: paymentAmount
             });
             setStatus({ type: 'success', message: 'Payment Recorded Successfully!' });
             setSelectedStudent(null);
@@ -74,8 +91,9 @@ const FeeManagement = () => {
             fetchFees();
             fetchPendingStats();
             setTimeout(() => setStatus({ type: '', message: '' }), 3000);
-        } catch {
-            setStatus({ type: 'error', message: 'Failed to record payment. Please try again.' });
+        } catch (error) {
+            const errorMsg = error.response?.data || 'Failed to record payment. Please try again.';
+            setStatus({ type: 'error', message: errorMsg });
         }
     };
 
@@ -122,6 +140,26 @@ const FeeManagement = () => {
             setTimeout(() => setStatus({ type: '', message: '' }), 3000);
         } catch {
             setStatus({ type: 'error', message: 'Failed to update scholarship status.' });
+        }
+    };
+
+    const handleUpdateTotalFee = async (e) => {
+        e.preventDefault();
+        if (!editFeeModal || !newTotalFee) return;
+        setStatus({ type: '', message: '' });
+        try {
+            await api.put(`/admin/fees/update-total/${editFeeModal.studentId}`, {
+                totalFee: parseFloat(newTotalFee)
+            });
+            setStatus({ type: 'success', message: 'Total fee updated successfully!' });
+            setEditFeeModal(null);
+            setNewTotalFee('');
+            fetchFees();
+            fetchPendingStats();
+            setTimeout(() => setStatus({ type: '', message: '' }), 3000);
+        } catch (error) {
+            const errorMsg = error.response?.data || 'Failed to update fee. Please try again.';
+            setStatus({ type: 'error', message: errorMsg });
         }
     };
 
@@ -342,7 +380,7 @@ const FeeManagement = () => {
                             <th className="p-4 font-semibold text-gray-600">Balance</th>
                             <th className="p-4 font-semibold text-gray-600">Status</th>
                             <th className="p-4 font-semibold text-gray-600">Scholarship Status</th>
-                            <th className="p-4 font-semibold text-gray-600">Action</th>
+                            <th className="p-4 font-semibold text-gray-600">Actions</th>
                         </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -378,14 +416,26 @@ const FeeManagement = () => {
                                     })()}
                                 </td>
                                 <td className="p-4">
-                                    {record.status !== 'PAID' && (
+                                    <div className="flex items-center gap-2">
                                         <button
-                                            onClick={() => setSelectedStudent(record)}
-                                            className="text-blue-600 hover:text-blue-800 font-medium text-sm border border-blue-200 px-3 py-1 rounded hover:bg-blue-50 transition-colors"
+                                            onClick={() => {
+                                                setEditFeeModal(record);
+                                                setNewTotalFee(record.total);
+                                            }}
+                                            className="text-gray-600 hover:text-blue-600 p-1.5 hover:bg-blue-50 rounded transition-colors"
+                                            title="Edit Total Fee"
                                         >
-                                            Record Pay
+                                            <Edit2 className="w-4 h-4" />
                                         </button>
-                                    )}
+                                        {record.status !== 'PAID' && (
+                                            <button
+                                                onClick={() => setSelectedStudent(record)}
+                                                className="text-blue-600 hover:text-blue-800 font-medium text-sm border border-blue-200 px-3 py-1 rounded hover:bg-blue-50 transition-colors"
+                                            >
+                                                Record Pay
+                                            </button>
+                                        )}
+                                    </div>
                                 </td>
                             </tr>
                         ))}
@@ -405,32 +455,113 @@ const FeeManagement = () => {
                         <h3 className="text-xl font-bold mb-4 text-gray-900">Record Payment</h3>
                         <div className="bg-gray-50 p-4 rounded-lg mb-4 border border-gray-100">
                             <p className="text-gray-600 text-sm">Student: <span className="font-semibold text-gray-900">{selectedStudent.name}</span></p>
+                            <p className="text-gray-600 text-sm mt-1">PRN: <span className="font-semibold text-gray-900">{selectedStudent.prn}</span></p>
+                            <p className="text-gray-600 text-sm mt-1">Total Fee: <span className="font-semibold text-gray-900">₹{selectedStudent.total.toLocaleString()}</span></p>
+                            <p className="text-gray-600 text-sm mt-1">Already Paid: <span className="font-semibold text-green-600">₹{selectedStudent.paid.toLocaleString()}</span></p>
                             <p className="text-gray-600 text-sm mt-1">Balance Due: <span className="font-semibold text-red-600">₹{selectedStudent.balance.toLocaleString()}</span></p>
                         </div>
 
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Amount to Pay</label>
-                        <input
-                            type="number"
-                            placeholder="Enter Amount"
-                            value={payAmount}
-                            onChange={(e) => setPayAmount(e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg mb-6 focus:ring-2 focus:ring-green-500 outline-none"
-                            autoFocus
-                        />
-                        <div className="flex justify-end gap-3">
-                            <button
-                                onClick={() => setSelectedStudent(null)}
-                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors font-medium"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handlePayment}
-                                className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium shadow-sm"
-                            >
-                                Confirm Payment
-                            </button>
+                        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4 flex items-start">
+                            <AlertTriangle className="w-4 h-4 text-amber-600 mr-2 mt-0.5 shrink-0" />
+                            <p className="text-xs text-amber-700">
+                                Payment amount cannot exceed the remaining balance of ₹{selectedStudent.balance.toLocaleString()}.
+                            </p>
                         </div>
+
+                        <form onSubmit={handlePayment}>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Amount to Pay (₹)</label>
+                            <input
+                                type="number"
+                                placeholder="Enter Amount"
+                                value={payAmount}
+                                onChange={(e) => setPayAmount(e.target.value)}
+                                className="w-full p-3 border border-gray-300 rounded-lg mb-6 focus:ring-2 focus:ring-green-500 outline-none"
+                                min="0.01"
+                                max={selectedStudent.balance}
+                                step="0.01"
+                                required
+                                autoFocus
+                            />
+                            <div className="flex justify-end gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setSelectedStudent(null);
+                                        setPayAmount('');
+                                    }}
+                                    className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors font-medium"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium shadow-sm"
+                                >
+                                    Confirm Payment
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Fee Modal */}
+            {editFeeModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 backdrop-blur-sm">
+                    <div className="bg-white p-6 rounded-xl shadow-xl max-w-md w-full border border-gray-200">
+                        <h3 className="text-xl font-bold mb-4 text-gray-900 flex items-center">
+                            <Edit2 className="w-5 h-5 mr-2 text-blue-600" />
+                            Edit Total Fee
+                        </h3>
+                        <div className="bg-blue-50 p-4 rounded-lg mb-4 border border-blue-100">
+                            <p className="text-gray-600 text-sm">Student: <span className="font-semibold text-gray-900">{editFeeModal.name}</span></p>
+                            <p className="text-gray-600 text-sm mt-1">PRN: <span className="font-semibold text-gray-900">{editFeeModal.prn}</span></p>
+                            <p className="text-gray-600 text-sm mt-1">Current Total Fee: <span className="font-semibold text-gray-900">₹{editFeeModal.total.toLocaleString()}</span></p>
+                            <p className="text-gray-600 text-sm mt-1">Paid: <span className="font-semibold text-green-600">₹{editFeeModal.paid.toLocaleString()}</span></p>
+                            {editFeeModal.scholarshipAmount > 0 && (
+                                <p className="text-gray-600 text-sm mt-1">Scholarship: <span className="font-semibold text-purple-600">₹{editFeeModal.scholarshipAmount.toLocaleString()}</span></p>
+                            )}
+                        </div>
+
+                        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4 flex items-start">
+                            <AlertTriangle className="w-4 h-4 text-amber-600 mr-2 mt-0.5 shrink-0" />
+                            <p className="text-xs text-amber-700">
+                                The new total fee must be greater than or equal to the already paid amount (₹{(editFeeModal.paid + editFeeModal.scholarshipAmount).toLocaleString()}).
+                            </p>
+                        </div>
+
+                        <form onSubmit={handleUpdateTotalFee}>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">New Total Fee (₹)</label>
+                            <input
+                                type="number"
+                                placeholder="Enter New Total Fee"
+                                value={newTotalFee}
+                                onChange={(e) => setNewTotalFee(e.target.value)}
+                                className="w-full p-3 border border-gray-300 rounded-lg mb-6 focus:ring-2 focus:ring-blue-500 outline-none"
+                                min={editFeeModal.paid + editFeeModal.scholarshipAmount}
+                                step="0.01"
+                                required
+                                autoFocus
+                            />
+                            <div className="flex justify-end gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setEditFeeModal(null);
+                                        setNewTotalFee('');
+                                    }}
+                                    className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors font-medium"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
+                                >
+                                    Update Fee
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}

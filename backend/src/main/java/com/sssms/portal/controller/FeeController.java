@@ -46,10 +46,27 @@ public class FeeController {
 
     @PostMapping("/pay")
     public ResponseEntity<?> recordPayment(@RequestBody Map<String, Object> payload) {
-        Long studentId = Long.valueOf(payload.get("studentId").toString());
-        double amount = Double.parseDouble(payload.get("amount").toString());
-        feeService.recordPayment(studentId, amount);
-        return ResponseEntity.ok("Payment Recorded");
+        try {
+            Long studentId = Long.valueOf(payload.get("studentId").toString());
+            double amount = Double.parseDouble(payload.get("amount").toString());
+            feeService.recordPayment(studentId, amount);
+            return ResponseEntity.ok("Payment Recorded");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/update-total/{studentId}")
+    public ResponseEntity<?> updateTotalFee(
+            @PathVariable Long studentId,
+            @RequestBody Map<String, Object> payload) {
+        try {
+            double newTotal = Double.parseDouble(payload.get("totalFee").toString());
+            feeService.updateTotalFee(studentId, newTotal);
+            return ResponseEntity.ok("Total fee updated successfully");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     // ==================== FEE REMINDERS ====================
