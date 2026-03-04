@@ -125,8 +125,10 @@ public class StudentController {
             result.put("hasFeeRecord", true);
             result.put("totalFee", feeRecord.getTotalFee());
             result.put("paidAmount", feeRecord.getPaidAmount());
-            result.put("balance", feeRecord.getTotalFee() - feeRecord.getPaidAmount());
-            result.put("status", feeRecord.getPaidAmount() >= feeRecord.getTotalFee() ? "PAID" : "PENDING");
+            result.put("scholarshipAmount", feeRecord.getScholarshipAmount());
+            double effectiveBalance = feeRecord.getTotalFee() - feeRecord.getPaidAmount() - feeRecord.getScholarshipAmount();
+            result.put("balance", Math.max(effectiveBalance, 0));
+            result.put("status", effectiveBalance <= 0 ? "PAID" : "PENDING");
         } else {
             result.put("hasFeeRecord", false);
         }

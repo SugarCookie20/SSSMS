@@ -55,8 +55,10 @@ public class FeeService {
             map.put("prn", f.getStudent().getPrn());
             map.put("total", f.getTotalFee());
             map.put("paid", f.getPaidAmount());
-            map.put("balance", f.getTotalFee() - f.getPaidAmount());
-            map.put("status", f.getPaidAmount() >= f.getTotalFee() ? "PAID" : "PENDING");
+            map.put("scholarshipAmount", f.getScholarshipAmount());
+            double effectiveBalance = f.getTotalFee() - f.getPaidAmount() - f.getScholarshipAmount();
+            map.put("balance", Math.max(effectiveBalance, 0));
+            map.put("status", effectiveBalance <= 0 ? "PAID" : "PENDING");
             map.put("scholarshipStatus", f.getStudent().getScholarshipStatus() != null
                     ? f.getStudent().getScholarshipStatus().name() : "NOT_APPLIED");
             return map;

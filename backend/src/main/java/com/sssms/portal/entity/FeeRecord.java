@@ -22,5 +22,6 @@ public class FeeRecord {
 
     private double totalFee;
     private double paidAmount;
+    private double scholarshipAmount;
     private LocalDateTime lastPaymentDate;
 }

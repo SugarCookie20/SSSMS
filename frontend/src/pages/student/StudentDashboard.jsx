@@ -124,7 +124,7 @@ const StudentDashboard = () => {
                                                 'bg-red-50 text-red-700 border border-red-200'
                                             }`}>
                                                 <GraduationCap className="w-4 h-4 mr-1.5" />
-                                                Scholarship: {feeStatus.scholarshipStatus === 'APPROVED' ? 'Approved' : feeStatus.scholarshipStatus === 'APPLIED' ? 'Applied' : 'Rejected'}
+                                                Scholarship: {feeStatus.scholarshipStatus === 'APPROVED' ? `Approved (₹${(feeStatus.scholarshipAmount || 0).toLocaleString()})` : feeStatus.scholarshipStatus === 'APPLIED' ? 'Applied' : 'Rejected'}
                                             </div>
                                         )}
                                         <span className="text-xs text-gray-400">
@@ -158,7 +158,7 @@ const StudentDashboard = () => {
                                         'bg-red-100 text-red-700'
                                     }`}>
                                         <GraduationCap className="w-3 h-3 mr-1" />
-                                        Scholarship {feeStatus.scholarshipStatus === 'APPROVED' ? 'Approved' : feeStatus.scholarshipStatus === 'APPLIED' ? 'Applied' : 'Rejected'}
+                                        Scholarship {feeStatus.scholarshipStatus === 'APPROVED' ? `Approved (₹${(feeStatus.scholarshipAmount || 0).toLocaleString()})` : feeStatus.scholarshipStatus === 'APPLIED' ? 'Applied' : 'Rejected'}
                                     </span>
                                 )}
                             </div>

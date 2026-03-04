@@ -1,10 +1,8 @@
 package com.sssms.portal.controller;
 
-import com.sssms.portal.entity.FeeReminder;
-import com.sssms.portal.entity.ScholarshipStatus;
-import com.sssms.portal.entity.Student;
-import com.sssms.portal.entity.User;
+import com.sssms.portal.entity.*;
 import com.sssms.portal.repository.FeeReminderRepository;
+import com.sssms.portal.repository.FeeRepository;
 import com.sssms.portal.repository.StudentRepository;
 import com.sssms.portal.repository.UserRepository;
 import com.sssms.portal.service.FeeService;
@@ -29,6 +27,7 @@ public class FeeController {
 
     private final FeeService feeService;
     private final FeeReminderRepository feeReminderRepository;
+    private final FeeRepository feeRepository;
     private final UserRepository userRepository;
     private final StudentRepository studentRepository;
 
@@ -141,6 +140,26 @@ public class FeeController {
             ScholarshipStatus newStatus = ScholarshipStatus.valueOf(statusStr);
             student.setScholarshipStatus(newStatus);
             studentRepository.save(student);
+
+            // Update scholarship amount on fee record if provided
+            String amountStr = payload.get("scholarshipAmount");
+            if (amountStr != null && !amountStr.isEmpty()) {
+                FeeRecord feeRecord = feeRepository.findByStudentId(studentId).orElse(null);
+                if (feeRecord != null) {
+                    feeRecord.setScholarshipAmount(Double.parseDouble(amountStr));
+                    feeRepository.save(feeRecord);
+                }
+            }
+
+            // If rejected or not applied, reset scholarship amount
+            if (newStatus == ScholarshipStatus.REJECTED || newStatus == ScholarshipStatus.NOT_APPLIED) {
+                FeeRecord feeRecord = feeRepository.findByStudentId(studentId).orElse(null);
+                if (feeRecord != null) {
+                    feeRecord.setScholarshipAmount(0);
+                    feeRepository.save(feeRecord);
+                }
+            }
+
             return ResponseEntity.ok("Scholarship status updated to " + newStatus);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("Invalid scholarship status: " + payload.get("status"));

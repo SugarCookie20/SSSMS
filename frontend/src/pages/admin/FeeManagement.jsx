@@ -111,9 +111,13 @@ const FeeManagement = () => {
 
     const handleScholarshipUpdate = async (studentId, newStatus) => {
         try {
-            await api.put(`/admin/fees/scholarship/${studentId}`, { status: newStatus });
+            await api.put(`/admin/fees/scholarship/${studentId}`, {
+                status: newStatus,
+                scholarshipAmount: (newStatus === 'APPROVED' && scholarshipAmountInput) ? scholarshipAmountInput : null,
+            });
             setStatus({ type: 'success', message: 'Scholarship status updated!' });
             setScholarshipModal(null);
+            setScholarshipAmountInput('');
             fetchFees();
             setTimeout(() => setStatus({ type: '', message: '' }), 3000);
         } catch {
@@ -123,6 +127,7 @@ const FeeManagement = () => {
 
     // Scholarship Modal State
     const [scholarshipModal, setScholarshipModal] = useState(null);
+    const [scholarshipAmountInput, setScholarshipAmountInput] = useState('');
 
     const scholarshipConfig = {
         NOT_APPLIED: { label: 'Not Applied', bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-200' },
@@ -333,9 +338,10 @@ const FeeManagement = () => {
                             <th className="p-4 font-semibold text-gray-600">PRN</th>
                             <th className="p-4 font-semibold text-gray-600">Total Fee</th>
                             <th className="p-4 font-semibold text-gray-600">Paid</th>
+                            <th className="p-4 font-semibold text-gray-600">Scholarship</th>
                             <th className="p-4 font-semibold text-gray-600">Balance</th>
                             <th className="p-4 font-semibold text-gray-600">Status</th>
-                            <th className="p-4 font-semibold text-gray-600">Scholarship</th>
+                            <th className="p-4 font-semibold text-gray-600">Scholarship Status</th>
                             <th className="p-4 font-semibold text-gray-600">Action</th>
                         </tr>
                         </thead>
@@ -346,6 +352,9 @@ const FeeManagement = () => {
                                 <td className="p-4 text-gray-500 font-mono text-sm">{record.prn}</td>
                                 <td className="p-4 text-gray-900">₹{record.total.toLocaleString()}</td>
                                 <td className="p-4 text-green-600">₹{record.paid.toLocaleString()}</td>
+                                <td className="p-4 text-purple-600">
+                                    {record.scholarshipAmount > 0 ? `₹${record.scholarshipAmount.toLocaleString()}` : '—'}
+                                </td>
                                 <td className="p-4 text-red-600 font-medium">₹{record.balance.toLocaleString()}</td>
                                 <td className="p-4">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -435,10 +444,13 @@ const FeeManagement = () => {
                             <p className="text-gray-600 text-sm">Student: <span className="font-semibold text-gray-900">{scholarshipModal.name}</span></p>
                             <p className="text-gray-600 text-sm mt-1">PRN: <span className="font-semibold text-gray-900">{scholarshipModal.prn}</span></p>
                             <p className="text-gray-600 text-sm mt-1">Current Status: <span className={`font-semibold ${(scholarshipConfig[scholarshipModal.scholarshipStatus] || scholarshipConfig.NOT_APPLIED).text}`}>{(scholarshipConfig[scholarshipModal.scholarshipStatus] || scholarshipConfig.NOT_APPLIED).label}</span></p>
+                            {scholarshipModal.scholarshipAmount > 0 && (
+                                <p className="text-gray-600 text-sm mt-1">Current Scholarship Amount: <span className="font-semibold text-purple-600">₹{scholarshipModal.scholarshipAmount.toLocaleString()}</span></p>
+                            )}
                         </div>
 
                         <p className="text-sm font-medium text-gray-700 mb-3">Select New Status</p>
-                        <div className="flex flex-col gap-2 mb-6">
+                        <div className="flex flex-col gap-2 mb-4">
                             <button
                                 onClick={() => handleScholarshipUpdate(scholarshipModal.studentId, 'NOT_APPLIED')}
                                 disabled={scholarshipModal.scholarshipStatus === 'NOT_APPLIED'}
@@ -462,17 +474,6 @@ const FeeManagement = () => {
                                 Applied
                             </button>
                             <button
-                                onClick={() => handleScholarshipUpdate(scholarshipModal.studentId, 'APPROVED')}
-                                disabled={scholarshipModal.scholarshipStatus === 'APPROVED'}
-                                className={`px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${
-                                    scholarshipModal.scholarshipStatus === 'APPROVED'
-                                        ? 'bg-green-100 text-green-700 border-green-300 opacity-60 cursor-not-allowed'
-                                        : 'border-gray-200 text-gray-700 hover:border-green-200 hover:bg-green-50 hover:text-green-700'
-                                }`}
-                            >
-                                Approved
-                            </button>
-                            <button
                                 onClick={() => handleScholarshipUpdate(scholarshipModal.studentId, 'REJECTED')}
                                 disabled={scholarshipModal.scholarshipStatus === 'REJECTED'}
                                 className={`px-4 py-2.5 rounded-lg border text-sm font-medium transition-all ${
@@ -485,9 +486,32 @@ const FeeManagement = () => {
                             </button>
                         </div>
 
-                        <div className="flex justify-end">
+                        {/* Approve with Amount — separate section at the bottom */}
+                        <div className="border-t border-gray-200 pt-4 mt-2">
+                            <p className="text-sm font-medium text-gray-700 mb-2">Approve with Scholarship Amount</p>
+                            <div className="flex gap-2">
+                                <input
+                                    type="number"
+                                    min="0"
+                                    placeholder="₹ Amount"
+                                    value={scholarshipAmountInput}
+                                    onChange={(e) => setScholarshipAmountInput(e.target.value)}
+                                    className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 outline-none"
+                                />
+                                <button
+                                    onClick={() => handleScholarshipUpdate(scholarshipModal.studentId, 'APPROVED')}
+                                    disabled={!scholarshipAmountInput || Number(scholarshipAmountInput) <= 0}
+                                    className="px-5 py-2.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    Approve
+                                </button>
+                            </div>
+                            <p className="text-xs text-gray-400 mt-1.5">This amount will be deducted from the student's outstanding balance.</p>
+                        </div>
+
+                        <div className="flex justify-end mt-4">
                             <button
-                                onClick={() => setScholarshipModal(null)}
+                                onClick={() => { setScholarshipModal(null); setScholarshipAmountInput(''); }}
                                 className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors font-medium"
                             >
                                 Close
