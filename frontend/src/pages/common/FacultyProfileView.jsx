@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../api/axiosConfig';
-import { User, Mail, Briefcase, BookOpen, Calendar, Phone, ArrowLeft, GraduationCap } from 'lucide-react';
+import { User, Mail, Briefcase, BookOpen, Calendar, Phone, ArrowLeft, GraduationCap, ShieldCheck, FileText } from 'lucide-react';
 
 const FacultyProfileView = () => {
     const { id } = useParams();
@@ -70,6 +70,42 @@ const FacultyProfileView = () => {
                             ))}
                         </ul>
                     )}
+                </div>
+
+                {/* COA Registration */}
+                <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+                    <h3 className="text-lg font-bold mb-4 flex items-center"><ShieldCheck className="w-5 h-5 mr-2 text-purple-600"/> COA Registration</h3>
+                    <div className="space-y-3">
+                        <div>
+                            <p className="text-xs text-gray-400 uppercase tracking-wide">Registration No.</p>
+                            <p className="text-gray-700 font-medium">{profile.coaRegistrationNo || "Not Provided"}</p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <p className="text-xs text-gray-400 uppercase tracking-wide">Valid From</p>
+                                <p className="text-gray-700">{profile.coaValidFrom ? new Date(profile.coaValidFrom).toLocaleDateString() : "—"}</p>
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-400 uppercase tracking-wide">Valid Till</p>
+                                <p className="text-gray-700">{profile.coaValidTill ? new Date(profile.coaValidTill).toLocaleDateString() : "—"}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* ID Documents */}
+                <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+                    <h3 className="text-lg font-bold mb-4 flex items-center"><FileText className="w-5 h-5 mr-2 text-purple-600"/> ID Documents</h3>
+                    <div className="space-y-3">
+                        <div>
+                            <p className="text-xs text-gray-400 uppercase tracking-wide">Aadhar No.</p>
+                            <p className="text-gray-700 font-mono">{profile.aadharNo || "Not Provided"}</p>
+                        </div>
+                        <div>
+                            <p className="text-xs text-gray-400 uppercase tracking-wide">PAN Card No.</p>
+                            <p className="text-gray-700 font-mono">{profile.panCardNo || "Not Provided"}</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

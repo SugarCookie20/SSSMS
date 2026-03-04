@@ -150,6 +150,11 @@ public class FacultyController {
             response.put("qualification", faculty.getQualification());
             response.put("joiningDate", faculty.getJoiningDate());
             response.put("phoneNumber", faculty.getPhoneNumber());
+            response.put("coaRegistrationNo", faculty.getCoaRegistrationNo());
+            response.put("coaValidFrom", faculty.getCoaValidFrom());
+            response.put("coaValidTill", faculty.getCoaValidTill());
+            response.put("aadharNo", faculty.getAadharNo());
+            response.put("panCardNo", faculty.getPanCardNo());
             response.put("subjects", subjects);
 
             return ResponseEntity.ok(response);
