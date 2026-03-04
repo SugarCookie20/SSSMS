@@ -11,6 +11,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -28,6 +29,8 @@ public class StudentController {
     private final ExamResultRepository resultRepository;
     private final StudentMarkRepository studentMarkRepository;
     private final com.sssms.portal.service.GradingService gradingService;
+    private final FeeRepository feeRepository;
+    private final FeeReminderRepository feeReminderRepository;
 
     @GetMapping("/my-attendance")
     public ResponseEntity<?> getMyAttendance(@AuthenticationPrincipal UserDetails userDetails) {
@@ -108,4 +111,39 @@ public class StudentController {
             User user = userRepository.findByEmail(userDetails.getUsername()).orElseThrow();
             return ResponseEntity.ok(gradingService.generateReportCard(user.getUserId()));
         }
+
+    @GetMapping("/my-fee-status")
+    public ResponseEntity<?> getMyFeeStatus(@AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails == null) return ResponseEntity.status(401).build();
+        User user = userRepository.findByEmail(userDetails.getUsername()).orElseThrow();
+
+        Map<String, Object> result = new HashMap<>();
+
+        // Fee record
+        FeeRecord feeRecord = feeRepository.findByStudentId(user.getUserId()).orElse(null);
+        if (feeRecord != null) {
+            result.put("hasFeeRecord", true);
+            result.put("totalFee", feeRecord.getTotalFee());
+            result.put("paidAmount", feeRecord.getPaidAmount());
+            result.put("balance", feeRecord.getTotalFee() - feeRecord.getPaidAmount());
+            result.put("status", feeRecord.getPaidAmount() >= feeRecord.getTotalFee() ? "PAID" : "PENDING");
+        } else {
+            result.put("hasFeeRecord", false);
+        }
+
+        // Active reminders
+        List<Map<String, Object>> reminders = feeReminderRepository.findByActiveTrueOrderByCreatedAtDesc()
+                .stream().map(r -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("id", r.getId());
+                    map.put("title", r.getTitle());
+                    map.put("message", r.getMessage());
+                    map.put("dueDate", r.getDueDate());
+                    map.put("createdAt", r.getCreatedAt());
+                    return map;
+                }).collect(Collectors.toList());
+        result.put("reminders", reminders);
+
+        return ResponseEntity.ok(result);
+    }
 }

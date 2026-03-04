@@ -10,7 +10,9 @@ import {
     Book,
     Bell,
     TrendingUp,
-    TrendingDown
+    TrendingDown,
+    AlertTriangle,
+    Banknote
 } from 'lucide-react';
 
 const StudentDashboard = () => {
@@ -19,6 +21,7 @@ const StudentDashboard = () => {
 
     const [latestNotice, setLatestNotice] = useState(null);
     const [attendanceReport, setAttendanceReport] = useState([]);
+    const [feeStatus, setFeeStatus] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -30,6 +33,13 @@ const StudentDashboard = () => {
                 }
                 const attRes = await api.get('/student/my-attendance');
                 setAttendanceReport(attRes.data);
+
+                try {
+                    const feeRes = await api.get('/student/my-fee-status');
+                    setFeeStatus(feeRes.data);
+                } catch {
+                    // Fee status not available, that's OK
+                }
             } catch (error) {
                 console.error("Failed to load dashboard data");
             } finally {
@@ -80,6 +90,59 @@ const StudentDashboard = () => {
                     Architecture | Year {formatYear(user?.currentYear)}
                 </p>
             </div>
+
+            {/* Fee Reminder Alert */}
+            {feeStatus && feeStatus.status === 'PENDING' && feeStatus.reminders && feeStatus.reminders.length > 0 && (
+                <div className="mb-8 space-y-3">
+                    {feeStatus.reminders.map((reminder) => (
+                        <div key={reminder.id} className="bg-gradient-to-r from-red-50 to-orange-50 border border-red-200 rounded-xl p-5 shadow-sm">
+                            <div className="flex items-start">
+                                <div className="p-2.5 bg-red-100 rounded-lg mr-4 mt-0.5 shrink-0">
+                                    <AlertTriangle className="w-5 h-5 text-red-600" />
+                                </div>
+                                <div className="flex-1">
+                                    <div className="flex items-start justify-between">
+                                        <h3 className="text-base font-bold text-red-800">{reminder.title}</h3>
+                                        {reminder.dueDate && (
+                                            <span className="bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded-full font-semibold shrink-0 ml-3">
+                                                Due: {new Date(reminder.dueDate).toLocaleDateString()}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <p className="text-red-700 text-sm mt-1">{reminder.message}</p>
+                                    <div className="flex items-center gap-4 mt-3">
+                                        <div className="flex items-center bg-white px-3 py-1.5 rounded-lg border border-red-200 text-sm">
+                                            <Banknote className="w-4 h-4 text-red-500 mr-1.5" />
+                                            <span className="text-gray-500 mr-1">Balance:</span>
+                                            <span className="font-bold text-red-700">₹{feeStatus.balance?.toLocaleString()}</span>
+                                        </div>
+                                        <span className="text-xs text-gray-400">
+                                            {new Date(reminder.createdAt).toLocaleDateString()}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* Fee Pending Banner (if pending but no active reminders) */}
+            {feeStatus && feeStatus.status === 'PENDING' && (!feeStatus.reminders || feeStatus.reminders.length === 0) && (
+                <div className="mb-8 bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-xl p-5 shadow-sm">
+                    <div className="flex items-center">
+                        <div className="p-2.5 bg-amber-100 rounded-lg mr-4 shrink-0">
+                            <Banknote className="w-5 h-5 text-amber-600" />
+                        </div>
+                        <div className="flex-1">
+                            <h3 className="text-base font-bold text-amber-800">Fee Payment Pending</h3>
+                            <p className="text-amber-700 text-sm mt-0.5">
+                                You have an outstanding balance of <span className="font-bold">₹{feeStatus.balance?.toLocaleString()}</span>. Please clear your dues at the earliest.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Quick Access Grid */}
             <div className="mb-10">
