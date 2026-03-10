@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import api from "../../api/axiosConfig";
-import { UserPlus, Save, XCircle, GraduationCap } from "lucide-react";
+import { UserPlus, Save, XCircle, CheckCircle, GraduationCap } from "lucide-react";
 
 const EnrollFaculty = () => {
   const [formData, setFormData] = useState({
@@ -80,10 +80,14 @@ const EnrollFaculty = () => {
                 className={`p-4 mb-6 rounded-lg flex items-center ${
                     status.type === "success"
                         ? "bg-green-50 text-green-700 border border-green-200"
-                        : "bg-red-50 text-red-700 border-red-200"
+                        : "bg-red-50 text-red-700 border border-red-200"
                 }`}
             >
-              {status.type === "error" && <XCircle className="w-5 h-5 mr-2" />}
+              {status.type === "success" ? (
+                  <CheckCircle className="w-5 h-5 mr-2 flex-shrink-0" />
+              ) : (
+                  <XCircle className="w-5 h-5 mr-2 flex-shrink-0" />
+              )}
               {status.message}
             </div>
         )}
