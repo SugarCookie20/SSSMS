@@ -13,6 +13,18 @@ const GPALedger = () => {
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
 
+    // Max semesters allowed per academic year (2 sems per year)
+    const maxSemesterMap = {
+        FIRST_YEAR: 2,
+        SECOND_YEAR: 4,
+        THIRD_YEAR: 6,
+        FOURTH_YEAR: 8,
+        FIFTH_YEAR: 10,
+    };
+
+    const maxSemester = maxSemesterMap[selectedYear] || 10;
+    const availableSemesters = Array.from({ length: maxSemester }, (_, i) => i + 1);
+
     // Fetch academic years
     useEffect(() => {
         const fetchYears = async () => {
@@ -66,6 +78,14 @@ const GPALedger = () => {
         }
     }, [selectedYear, selectedSemester, fetchStudents]);
 
+    const handleYearChange = (year) => {
+        setSelectedYear(year);
+        const newMax = maxSemesterMap[year] || 10;
+        if (selectedSemester > newMax) {
+            setSelectedSemester(1);
+        }
+    };
+
     const handleSGPAChange = (studentId, value) => {
         setSgpaValues(prev => ({
             ...prev,
@@ -104,8 +124,8 @@ const GPALedger = () => {
             setMessage({ type: 'success', text: `SGPA saved for ${batch.length} students` });
             // Refresh to show updated CGPA
             fetchStudents();
-        } catch {
-            setMessage({ type: 'error', text: 'Failed to save SGPA' });
+        } catch (err) {
+            setMessage({ type: 'error', text: err.response?.data?.message || err.response?.data || 'Failed to save SGPA' });
         } finally {
             setSaving(false);
         }
@@ -134,7 +154,7 @@ const GPALedger = () => {
                         </label>
                         <select
                             value={selectedYear}
-                            onChange={(e) => setSelectedYear(e.target.value)}
+                            onChange={(e) => handleYearChange(e.target.value)}
                             className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="">Select Year</option>
@@ -152,7 +172,7 @@ const GPALedger = () => {
                             onChange={(e) => setSelectedSemester(parseInt(e.target.value))}
                             className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
-                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(sem => (
+                            {availableSemesters.map(sem => (
                                 <option key={sem} value={sem}>Semester {sem}</option>
                             ))}
                         </select>
