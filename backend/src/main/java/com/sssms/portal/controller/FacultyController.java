@@ -224,6 +224,19 @@ public class FacultyController {
                 return ResponseEntity.ok("Marks Saved Successfully");
     }
 
+    @GetMapping("/marks/{allocationId}/status")
+    public ResponseEntity<?> getGradedExamTypes(@PathVariable Long allocationId) {
+        return ResponseEntity.ok(gradingService.getGradedExamTypes(allocationId));
+    }
+
+    @GetMapping("/marks/{allocationId}")
+    public ResponseEntity<?> getMarksForExamType(
+            @PathVariable Long allocationId,
+            @RequestParam String examType) {
+        return ResponseEntity.ok(gradingService.getMarksForExamType(allocationId,
+                com.sssms.portal.entity.ExamType.valueOf(examType)));
+    }
+
     @GetMapping("/report-card/{studentId}")
     public ResponseEntity<?> getStudentReportCard(
             @AuthenticationPrincipal UserDetails userDetails,

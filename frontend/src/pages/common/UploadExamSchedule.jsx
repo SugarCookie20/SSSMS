@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../../api/axiosConfig';
-import { Upload, Calendar, CheckCircle, XCircle } from 'lucide-react';
+import { Upload, Calendar, CheckCircle, XCircle, ArrowLeft } from 'lucide-react';
 
 const UploadExamSchedule = () => {
+    const navigate = useNavigate();
+    const location = useLocation();
+    const dashboardPath = location.pathname.startsWith('/admin') ? '/admin/dashboard' : '/faculty/dashboard';
     const [years, setYears] = useState([]); // Changed classes -> years
     const [selectedYear, setSelectedYear] = useState(''); // Changed selectedClass -> selectedYear
     const [file, setFile] = useState(null);
@@ -51,6 +55,9 @@ const UploadExamSchedule = () => {
 
     return (
         <div className="max-w-3xl mx-auto">
+            <button onClick={() => navigate(dashboardPath)} className="mb-4 flex items-center text-gray-600 hover:text-blue-600 transition-colors">
+                <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
+            </button>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Exam Scheduling</h1>
             <p className="text-gray-600 mb-8">Publish exam timetables for specific academic years.</p>
 

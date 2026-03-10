@@ -13,7 +13,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.HttpHeaders;
-import com.sssms.portal.service.FileStorageService;
 
 @RestController
 @RequestMapping("/api/notices")
@@ -39,12 +38,28 @@ public class NoticeController {
                 @RequestParam("title") String title,
                 @RequestParam("content") String content,
                 @RequestParam("targetRole") TargetRole targetRole,
-                @RequestParam(value = "file", required = false) MultipartFile file
+                @RequestParam(value = "file", required = false) MultipartFile file,
+                @RequestParam(value = "visibility", required = false, defaultValue = "FOREVER") String visibility
         ) {
             if (userDetails == null) return ResponseEntity.status(401).build();
 
-            noticeService.createNotice(title, content, targetRole, file, userDetails.getUsername());
+            noticeService.createNotice(title, content, targetRole, file, userDetails.getUsername(), visibility);
             return ResponseEntity.ok("Notice posted successfully");
+        }
+
+        // Delete Notice (Admin or Faculty only)
+        @DeleteMapping("/{id}")
+        public ResponseEntity<?> deleteNotice(
+                @AuthenticationPrincipal UserDetails userDetails,
+                @PathVariable Long id
+        ) {
+            if (userDetails == null) return ResponseEntity.status(401).build();
+            try {
+                noticeService.deleteNotice(id, userDetails.getUsername());
+                return ResponseEntity.ok("Notice deleted successfully");
+            } catch (RuntimeException e) {
+                return ResponseEntity.badRequest().body(e.getMessage());
+            }
         }
 
         // Reuse the file storage service for downloading notice attachments

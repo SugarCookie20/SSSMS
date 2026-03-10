@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../api/axiosConfig';
-import { Upload, User, Users, CheckCircle, XCircle, Camera } from 'lucide-react';
+import { Upload, User, Users, CheckCircle, XCircle, Camera, ArrowLeft } from 'lucide-react';
 import CameraCapture from '../../components/ui/CameraCapture';
 
 const ManageTimetables = () => {
+    const navigate = useNavigate();
     // Data
     const [showCamera, setShowCamera] = useState(false);
     const [facultyList, setFacultyList] = useState([]);
@@ -69,6 +71,9 @@ const ManageTimetables = () => {
 
     return (
         <div className="max-w-4xl mx-auto">
+            <button onClick={() => navigate('/admin/dashboard')} className="mb-4 flex items-center text-gray-600 hover:text-blue-600 transition-colors">
+                <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
+            </button>
             <h1 className="text-3xl font-bold text-gray-900 mb-8">Timetable Management</h1>
 
             <div className="bg-white p-8 rounded-xl border border-gray-200 shadow-sm">

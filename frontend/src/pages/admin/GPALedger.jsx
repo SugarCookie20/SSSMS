@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../api/axiosConfig';
-import { GraduationCap, Save, CheckCircle, XCircle, Filter } from 'lucide-react';
+import { GraduationCap, Save, CheckCircle, XCircle, Filter, ArrowLeft } from 'lucide-react';
 
 const GPALedger = () => {
+    const navigate = useNavigate();
     const [selectedYear, setSelectedYear] = useState('');
     const [selectedSemester, setSelectedSemester] = useState(1);
     const [students, setStudents] = useState([]);
@@ -12,6 +14,18 @@ const GPALedger = () => {
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
+
+    // Max semesters allowed per academic year (2 sems per year)
+    const maxSemesterMap = {
+        FIRST_YEAR: 2,
+        SECOND_YEAR: 4,
+        THIRD_YEAR: 6,
+        FOURTH_YEAR: 8,
+        FIFTH_YEAR: 10,
+    };
+
+    const maxSemester = maxSemesterMap[selectedYear] || 10;
+    const availableSemesters = Array.from({ length: maxSemester }, (_, i) => i + 1);
 
     // Fetch academic years
     useEffect(() => {
@@ -66,6 +80,14 @@ const GPALedger = () => {
         }
     }, [selectedYear, selectedSemester, fetchStudents]);
 
+    const handleYearChange = (year) => {
+        setSelectedYear(year);
+        const newMax = maxSemesterMap[year] || 10;
+        if (selectedSemester > newMax) {
+            setSelectedSemester(1);
+        }
+    };
+
     const handleSGPAChange = (studentId, value) => {
         setSgpaValues(prev => ({
             ...prev,
@@ -104,8 +126,8 @@ const GPALedger = () => {
             setMessage({ type: 'success', text: `SGPA saved for ${batch.length} students` });
             // Refresh to show updated CGPA
             fetchStudents();
-        } catch {
-            setMessage({ type: 'error', text: 'Failed to save SGPA' });
+        } catch (err) {
+            setMessage({ type: 'error', text: err.response?.data?.message || err.response?.data || 'Failed to save SGPA' });
         } finally {
             setSaving(false);
         }
@@ -113,6 +135,9 @@ const GPALedger = () => {
 
     return (
         <div className="max-w-7xl mx-auto">
+            <button onClick={() => navigate('/admin/dashboard')} className="mb-4 flex items-center text-gray-600 hover:text-blue-600 transition-colors">
+                <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
+            </button>
             <div className="flex items-center gap-3 mb-6">
                 <GraduationCap className="w-8 h-8 text-blue-600" />
                 <div>
@@ -134,7 +159,7 @@ const GPALedger = () => {
                         </label>
                         <select
                             value={selectedYear}
-                            onChange={(e) => setSelectedYear(e.target.value)}
+                            onChange={(e) => handleYearChange(e.target.value)}
                             className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="">Select Year</option>
@@ -152,7 +177,7 @@ const GPALedger = () => {
                             onChange={(e) => setSelectedSemester(parseInt(e.target.value))}
                             className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
-                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(sem => (
+                            {availableSemesters.map(sem => (
                                 <option key={sem} value={sem}>Semester {sem}</option>
                             ))}
                         </select>

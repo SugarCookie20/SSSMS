@@ -1,5 +1,6 @@
 package com.sssms.portal.service;
 
+import com.sssms.portal.entity.AcademicYear;
 import com.sssms.portal.entity.ExamResult;
 import com.sssms.portal.entity.Student;
 import com.sssms.portal.repository.ExamResultRepository;
@@ -10,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -19,10 +21,31 @@ public class GPAService {
     private final ExamResultRepository examResultRepository;
     private final StudentRepository studentRepository;
 
+    private static final Map<AcademicYear, Integer> MAX_SEMESTER = Map.of(
+        AcademicYear.FIRST_YEAR,  2,
+        AcademicYear.SECOND_YEAR, 4,
+        AcademicYear.THIRD_YEAR,  6,
+        AcademicYear.FOURTH_YEAR, 8,
+        AcademicYear.FIFTH_YEAR,  10
+    );
+
     @Transactional
     public ExamResult enterSGPA(Long studentId, Integer semester, Double sgpa, String status) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
+
+        // Guard: reject semesters beyond the student's current academic year
+        AcademicYear academicYear = student.getAcademicYear();
+        if (academicYear != null) {
+            int maxAllowed = MAX_SEMESTER.getOrDefault(academicYear, 10);
+            if (semester > maxAllowed) {
+                throw new RuntimeException(
+                    "Cannot enter GPA for Semester " + semester +
+                    " — student is in " + academicYear.name().replace("_", " ") +
+                    " (max allowed: Semester " + maxAllowed + ")"
+                );
+            }
+        }
 
         // Calculate CGPA (average of all SGPAs up to this semester)
         List<ExamResult> previousResults = examResultRepository.findByStudentIdOrderBySemesterAsc(studentId);

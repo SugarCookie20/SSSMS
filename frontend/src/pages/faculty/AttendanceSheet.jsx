@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../../api/axiosConfig';
-import { Save, User, CheckCircle, XCircle, AlertCircle, BarChart3, Eye, Edit3, Trash2 } from 'lucide-react';
+import { Save, User, CheckCircle, XCircle, AlertCircle, BarChart3, Eye, Edit3, Trash2, ArrowLeft } from 'lucide-react';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 
 const AttendanceSheet = () => {
@@ -96,7 +96,7 @@ const AttendanceSheet = () => {
                 await api.post('/faculty/attendance', payload);
                 setStatus({ type: 'success', message: 'Attendance Saved Successfully!' });
             }
-            setTimeout(() => { navigate('/faculty/dashboard'); }, 1500);
+            setTimeout(() => setStatus({ type: '', message: '' }), 3000);
         } catch (error) {
             setStatus({ type: 'error', message: 'Failed to save attendance.' });
         } finally {
@@ -129,6 +129,9 @@ const AttendanceSheet = () => {
 
     return (
         <div className="max-w-4xl mx-auto">
+            <button onClick={() => navigate('/faculty/dashboard')} className="mb-4 flex items-center text-gray-600 hover:text-blue-600 transition-colors">
+                <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
+            </button>
 
             {/* Header Section */}
             <div className="flex justify-between items-start mb-6">

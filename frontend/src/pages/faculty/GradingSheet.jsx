@@ -1,9 +1,24 @@
 //check
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../api/axiosConfig';
-import { ArrowLeft, CheckCircle, XCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle, XCircle, Edit3, Save } from 'lucide-react';
+
+const EXAM_TYPES = [
+    { group: 'Internal Assessment (ISE/ICA)', options: [
+        { value: 'UNIT_TEST_1', label: 'Unit Test 1' },
+        { value: 'UNIT_TEST_2', label: 'Unit Test 2' },
+        { value: 'UNIT_TEST_3', label: 'Unit Test 3' },
+        { value: 'ASSIGNMENT', label: 'Assignment' },
+        { value: 'JURY', label: 'Jury' },
+    ]},
+    { group: 'External Assessment (ESE)', options: [
+        { value: 'THEORY_ESE', label: 'Theory ESE' },
+        { value: 'PRACTICAL_ESE', label: 'Practical ESE' },
+        { value: 'SESSIONAL_ESE', label: 'Sessional/Studio ESE' },
+    ]},
+];
 
 const GradingSheet = () => {
     const { id } = useParams(); // Allocation ID
@@ -17,7 +32,11 @@ const GradingSheet = () => {
     const [saving, setSaving] = useState(false);
     const [status, setStatus] = useState(null);
 
-    // 1. Fetch Roster
+    // Edit mode state (like attendance)
+    const [editMode, setEditMode] = useState(false);
+    const [gradedTypes, setGradedTypes] = useState([]); // List of already graded exam type strings
+
+    // 1. Fetch Roster + Graded Status
     useEffect(() => {
         const fetchStudents = async () => {
             try {
@@ -30,7 +49,51 @@ const GradingSheet = () => {
         fetchStudents();
     }, [id]);
 
-    // 2. Handle Mark Input
+    const fetchGradedStatus = useCallback(async () => {
+        try {
+            const res = await api.get(`/faculty/marks/${id}/status`);
+            setGradedTypes(res.data);
+        } catch {
+            // ignore
+        }
+    }, [id]);
+
+    useEffect(() => {
+        fetchGradedStatus();
+    }, [fetchGradedStatus]);
+
+    // 2. When examType changes, check if already graded and load existing marks
+    useEffect(() => {
+        const checkExisting = async () => {
+            if (gradedTypes.includes(examType)) {
+                // Load existing marks for editing
+                try {
+                    const res = await api.get(`/faculty/marks/${id}?examType=${examType}`);
+                    const existingMarks = {};
+                    let existingMax = maxMarks;
+                    res.data.forEach(m => {
+                        existingMarks[m.studentId] = m.marksObtained;
+                        existingMax = m.maxMarks;
+                    });
+                    setMarks(existingMarks);
+                    setMaxMarks(existingMax);
+                    setEditMode(true);
+                } catch {
+                    setMarks({});
+                    setEditMode(false);
+                }
+            } else {
+                // Fresh entry
+                setMarks({});
+                setEditMode(false);
+            }
+        };
+        if (students.length > 0) {
+            checkExisting();
+        }
+    }, [examType, gradedTypes, id, students]);
+
+    // 3. Handle Mark Input
     const handleMarkChange = (studentId, value) => {
         setMarks(prev => ({
             ...prev,
@@ -38,12 +101,11 @@ const GradingSheet = () => {
         }));
     };
 
-    // 3. Submit Marks
+    // 4. Submit Marks (works for both create and update — backend upserts)
     const handleSubmit = async () => {
         setSaving(true);
         setStatus(null);
 
-        // Convert map to list of DTOs
         const requests = students.map(s => ({
             studentId: s.id,
             allocationId: parseInt(id),
@@ -54,14 +116,18 @@ const GradingSheet = () => {
 
         try {
             await api.post('/faculty/marks/batch', requests);
-            setStatus({ type: 'success', msg: 'Marks Saved Successfully!' });
-            setTimeout(() => navigate('/faculty/dashboard'), 2000);
+            setStatus({ type: 'success', msg: editMode ? 'Marks Updated Successfully!' : 'Marks Saved Successfully!' });
+            setEditMode(true);
+            fetchGradedStatus(); // Refresh graded badges
+            setTimeout(() => setStatus(null), 3000);
         } catch {
             setStatus({ type: 'error', msg: 'Failed to save marks.' });
         } finally {
             setSaving(false);
         }
     };
+
+    const isGraded = (type) => gradedTypes.includes(type);
 
     return (
         <div className="max-w-5xl mx-auto">
@@ -70,7 +136,21 @@ const GradingSheet = () => {
             </button>
 
             <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-6">
-                <h1 className="text-2xl font-bold text-gray-900 mb-4">Enter Assessment Marks</h1>
+                <div className="flex justify-between items-center mb-4">
+                    <h1 className="text-2xl font-bold text-gray-900">
+                        {editMode ? (
+                            <span className="flex items-center">
+                                <Edit3 className="w-5 h-5 inline mr-2 text-orange-500" />
+                                Edit Assessment Marks
+                            </span>
+                        ) : 'Enter Assessment Marks'}
+                    </h1>
+                    {editMode && (
+                        <span className="text-xs font-semibold px-3 py-1 rounded-full bg-orange-100 text-orange-700">
+                            Editing — Previously Graded
+                        </span>
+                    )}
+                </div>
 
                 <div className="grid grid-cols-2 gap-6">
                     <div>
@@ -79,18 +159,15 @@ const GradingSheet = () => {
                             value={examType} onChange={e => setExamType(e.target.value)}
                             className="w-full p-2 border rounded-lg"
                         >
-                            <optgroup label="Internal Assessment (ISE/ICA)">
-                                <option value="UNIT_TEST_1">Unit Test 1</option>
-                                <option value="UNIT_TEST_2">Unit Test 2</option>
-                                <option value="UNIT_TEST_3">Unit Test 3</option>
-                                <option value="ASSIGNMENT">Assignment</option>
-                                <option value="JURY">Jury</option>
-                            </optgroup>
-                            <optgroup label="External Assessment (ESE)">
-                                <option value="THEORY_ESE">Theory ESE</option>
-                                <option value="PRACTICAL_ESE">Practical ESE</option>
-                                <option value="SESSIONAL_ESE">Sessional/Studio ESE</option>
-                            </optgroup>
+                            {EXAM_TYPES.map(group => (
+                                <optgroup key={group.group} label={group.group}>
+                                    {group.options.map(opt => (
+                                        <option key={opt.value} value={opt.value}>
+                                            {opt.label}{isGraded(opt.value) ? ' ✓ Graded' : ''}
+                                        </option>
+                                    ))}
+                                </optgroup>
+                            ))}
                         </select>
                     </div>
                     <div>
@@ -101,12 +178,34 @@ const GradingSheet = () => {
                         />
                     </div>
                 </div>
+
+                {/* Graded badges summary */}
+                {gradedTypes.length > 0 && (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                        {EXAM_TYPES.flatMap(g => g.options).map(opt => (
+                            isGraded(opt.value) && (
+                                <span key={opt.value}
+                                    onClick={() => setExamType(opt.value)}
+                                    className={`text-xs px-2.5 py-1 rounded-full cursor-pointer transition-colors flex items-center gap-1 ${
+                                        examType === opt.value
+                                            ? 'bg-blue-100 text-blue-700 ring-2 ring-blue-400'
+                                            : 'bg-green-50 text-green-700 hover:bg-green-100'
+                                    }`}
+                                >
+                                    <CheckCircle className="w-3 h-3" /> {opt.label}
+                                </span>
+                            )
+                        ))}
+                    </div>
+                )}
             </div>
 
             {status && (
-                <div className={`p-4 mb-6 rounded-lg flex items-center ${status.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                    {status.type === 'success' ? <CheckCircle className="w-5 h-5 mr-2"/> : <XCircle className="w-5 h-5 mr-2"/>}
-                    {status.msg}
+                <div className={`p-4 mb-6 rounded-lg flex items-center border ${
+                    status.type === 'success' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'
+                }`}>
+                    {status.type === 'success' ? <CheckCircle className="w-5 h-5 mr-3"/> : <XCircle className="w-5 h-5 mr-3"/>}
+                    <span className="font-medium">{status.msg}</span>
                 </div>
             )}
 
@@ -128,7 +227,8 @@ const GradingSheet = () => {
                                 <input
                                     type="number"
                                     placeholder="0"
-                                    className="w-full p-2 border rounded text-center font-bold"
+                                    value={marks[s.id] !== undefined ? marks[s.id] : ''}
+                                    className={`w-full p-2 border rounded text-center font-bold ${editMode ? 'border-orange-300 bg-orange-50' : ''}`}
                                     onChange={(e) => handleMarkChange(s.id, e.target.value)}
                                 />
                             </td>
@@ -140,9 +240,12 @@ const GradingSheet = () => {
                     <button
                         onClick={handleSubmit}
                         disabled={saving}
-                        className="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 disabled:opacity-50"
+                        className={`text-white px-6 py-2 rounded-lg font-bold disabled:opacity-50 flex items-center ${
+                            editMode ? 'bg-orange-600 hover:bg-orange-700' : 'bg-blue-600 hover:bg-blue-700'
+                        }`}
                     >
-                        {saving ? 'Saving...' : 'Submit Marks'}
+                        {editMode ? <Edit3 className="w-4 h-4 mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                        {saving ? 'Saving...' : editMode ? 'Update Marks' : 'Submit Marks'}
                     </button>
                 </div>
             </div>

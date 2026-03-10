@@ -18,7 +18,6 @@ const Login = () => {
     setLoading(true);
     setError("");
 
-    // Call the real login function
     const result = await login(email, password);
 
     if (result.success) {

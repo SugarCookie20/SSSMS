@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../api/axiosConfig';
 import { useAuth } from '../../auth/useAuth';
 import {
-    Award, Plus, Trash2, CheckCircle, XCircle, Calendar, Building2, BookOpen
+    Award, Plus, Trash2, CheckCircle, XCircle, Calendar, Building2, BookOpen, ArrowLeft
 } from 'lucide-react';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 
@@ -28,8 +29,10 @@ const typeColors = {
 
 const ProfessionalDevelopment = () => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const isAdmin = user?.role?.includes('ADMIN');
     const isFaculty = user?.role?.includes('FACULTY');
+    const dashboardPath = isAdmin ? '/admin/dashboard' : '/faculty/dashboard';
 
     const [entries, setEntries] = useState([]);
     const [showForm, setShowForm] = useState(false);
@@ -113,6 +116,9 @@ const ProfessionalDevelopment = () => {
 
     return (
         <div className="max-w-5xl mx-auto">
+            <button onClick={() => navigate(dashboardPath)} className="mb-4 flex items-center text-gray-600 hover:text-blue-600 transition-colors">
+                <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
+            </button>
             {/* Header */}
             <div className="flex justify-between items-center mb-8">
                 <div>

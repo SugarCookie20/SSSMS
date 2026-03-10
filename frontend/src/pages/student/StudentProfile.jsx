@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../api/axiosConfig';
-import { User, Mail, Calendar, Book, TrendingUp, Clock, MapPin, Phone, ShieldCheck, FileText, Lock } from 'lucide-react';
+import { User, Mail, Calendar, Book, TrendingUp, Clock, MapPin, Phone, ShieldCheck, FileText, Lock, ArrowLeft } from 'lucide-react';
 
 const StudentProfile = () => {
+    const navigate = useNavigate();
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
 
@@ -71,6 +73,9 @@ const StudentProfile = () => {
 
     return (
         <div className="max-w-5xl mx-auto">
+            <button onClick={() => navigate('/student/dashboard')} className="mb-4 flex items-center text-gray-600 hover:text-blue-600 transition-colors">
+                <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
+            </button>
             <div className="mb-8">
                 <h1 className="text-3xl font-bold text-gray-900">Student Profile</h1>
                 <p className="text-gray-600 mt-1">Manage your personal information and view academic progress.</p>

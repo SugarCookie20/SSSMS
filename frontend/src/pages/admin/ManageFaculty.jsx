@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axiosConfig';
-import { Trash2, Plus, User, CheckCircle, XCircle, AlertCircle, UserX, Eye } from 'lucide-react';
+import { Trash2, Plus, User, CheckCircle, XCircle, AlertCircle, UserX, Eye, ArrowLeft } from 'lucide-react';
 
 const ManageFaculty = () => {
     const navigate = useNavigate();
@@ -116,7 +116,11 @@ const ManageFaculty = () => {
     };
 
     return (
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row gap-6 h-[calc(100vh-100px)]">
+        <div className="max-w-6xl mx-auto">
+            <button onClick={() => navigate('/admin/dashboard')} className="mb-4 flex items-center text-gray-600 hover:text-blue-600 transition-colors">
+                <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
+            </button>
+            <div className="flex flex-col md:flex-row gap-6 h-[calc(100vh-140px)]">
 
             {/* Faculty List */}
             <div className="w-full md:w-1/3 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
@@ -265,6 +269,7 @@ const ManageFaculty = () => {
                     </div>
                 </div>
             )}
+            </div>
         </div>
     );
 };

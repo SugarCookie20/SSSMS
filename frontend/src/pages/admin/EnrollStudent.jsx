@@ -1,8 +1,10 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../../api/axiosConfig";
-import { UserPlus, Save, XCircle } from "lucide-react";
+import { UserPlus, Save, XCircle, ArrowLeft } from "lucide-react";
 
 const EnrollStudent = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     firstName: "",
     middleName: "",
@@ -64,6 +66,9 @@ const EnrollStudent = () => {
 
   return (
       <div className="max-w-5xl mx-auto">
+        <button onClick={() => navigate('/admin/dashboard')} className="mb-4 flex items-center text-gray-600 hover:text-blue-600 transition-colors">
+            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
+        </button>
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">

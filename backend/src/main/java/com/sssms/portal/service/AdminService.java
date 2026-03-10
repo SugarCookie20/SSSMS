@@ -34,6 +34,11 @@ public class AdminService {
     private final ExamResultRepository resultRepository;
     private final ProfessionalDevelopmentRepository pdRepository;
 
+    private final AttendanceRecordRepository attendanceRecordRepository;
+    private final StudentMarkRepository studentMarkRepository;
+    private final AcademicMarksRepository academicMarksRepository;
+    private final ClassAssessmentRepository classAssessmentRepository;
+
     @Transactional
     public String enrollStudent(StudentEnrollmentRequest request) {
         // Check if email already exists
@@ -118,6 +123,38 @@ public class AdminService {
                 .build();
         facultyRepository.save(newFaculty);
         return "Faculty enrolled successfully. Default password: " + generatedPassword;
+    }
+
+    @Transactional
+    public void deleteStudent(Long studentId) {
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+
+        // 1. Delete attendance records
+        attendanceRecordRepository.deleteAll(attendanceRecordRepository.findByStudentId(studentId));
+
+        // 2. Delete student marks (internal assessments)
+        studentMarkRepository.deleteAll(studentMarkRepository.findByStudentId(studentId));
+
+        // 3. Delete academic marks
+        academicMarksRepository.deleteAll(academicMarksRepository.findByStudentId(studentId));
+
+        // 4. Delete class assessments
+        classAssessmentRepository.deleteAll(classAssessmentRepository.findByStudentId(studentId));
+
+        // 5. Delete exam results
+        resultRepository.deleteAll(resultRepository.findByStudentId(studentId));
+
+        // 6. Clear extra courses (ManyToMany join table)
+        student.getExtraCourses().clear();
+        studentRepository.save(student);
+
+        // 7. Delete fee record
+        feeRepository.findByStudentId(studentId).ifPresent(feeRepository::delete);
+
+        // 8. Delete student profile and user
+        studentRepository.delete(student);
+        userRepository.deleteById(studentId);
     }
 
     public String allocateSubject(AllocationRequest request) {

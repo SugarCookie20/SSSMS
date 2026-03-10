@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axiosConfig';
 import { useAuth } from '../../auth/useAuth';
-import { BookOpen, ArrowRight, BarChart3, Upload, Target, ShieldCheck } from 'lucide-react';
+import { BookOpen, ArrowRight, BarChart3, Upload, Target, ShieldCheck, ArrowLeft } from 'lucide-react';
 
 const FacultySubjectList = ({ mode }) => {
     const { user } = useAuth();
@@ -73,6 +73,9 @@ const FacultySubjectList = ({ mode }) => {
 
     return (
         <div className="max-w-6xl mx-auto">
+            <button onClick={() => navigate(user?.role === 'ROLE_ADMIN' ? '/admin/dashboard' : '/faculty/dashboard')} className="mb-4 flex items-center text-gray-600 hover:text-blue-600 transition-colors">
+                <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
+            </button>
             <div className="mb-8 flex justify-between items-end">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">{getPageTitle()}</h1>

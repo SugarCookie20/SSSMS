@@ -1,8 +1,10 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../../api/axiosConfig";
-import { UserPlus, Save, XCircle, GraduationCap } from "lucide-react";
+import { UserPlus, Save, XCircle, CheckCircle, GraduationCap, ArrowLeft } from "lucide-react";
 
 const EnrollFaculty = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     firstName: "",
     middleName: "",
@@ -64,6 +66,9 @@ const EnrollFaculty = () => {
 
   return (
       <div className="max-w-5xl mx-auto">
+        <button onClick={() => navigate('/admin/dashboard')} className="mb-4 flex items-center text-gray-600 hover:text-blue-600 transition-colors">
+            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
+        </button>
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Enroll Faculty</h1>
@@ -81,10 +86,14 @@ const EnrollFaculty = () => {
                 className={`p-4 mb-6 rounded-lg flex items-center ${
                     status.type === "success"
                         ? "bg-green-50 text-green-700 border border-green-200"
-                        : "bg-red-50 text-red-700 border-red-200"
+                        : "bg-red-50 text-red-700 border border-red-200"
                 }`}
             >
-              {status.type === "error" && <XCircle className="w-5 h-5 mr-2" />}
+              {status.type === "success" ? (
+                  <CheckCircle className="w-5 h-5 mr-2 flex-shrink-0" />
+              ) : (
+                  <XCircle className="w-5 h-5 mr-2 flex-shrink-0" />
+              )}
               {status.message}
             </div>
         )}

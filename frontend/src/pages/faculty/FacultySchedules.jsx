@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../api/axiosConfig';
 import {
     Clock, Calendar, BookOpen, GraduationCap, Download,
-    CheckCircle, XCircle, Trash2, Eye, Camera
+    CheckCircle, XCircle, Trash2, Eye, Camera, ArrowLeft
 } from 'lucide-react';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import CameraCapture from '../../components/ui/CameraCapture';
@@ -24,6 +25,7 @@ const colorMap = {
 const formatYear = (str) => str.replace(/_/g, ' ').replace(/(^\w|\s\w)/g, (m) => m.toUpperCase());
 
 const FacultySchedules = () => {
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('myTimetable');
     const [confirm, setConfirm] = useState(null);
     const [showCamera, setShowCamera] = useState(false);
@@ -121,6 +123,9 @@ const FacultySchedules = () => {
     // ======================== RENDER ========================
     return (
         <div className="max-w-5xl mx-auto">
+            <button onClick={() => navigate('/faculty/dashboard')} className="mb-4 flex items-center text-gray-600 hover:text-blue-600 transition-colors">
+                <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
+            </button>
             <div className="flex justify-between items-center mb-2">
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Schedules</h1>
                 {activeTab === 'myTimetable' && myTimetableUrl && (

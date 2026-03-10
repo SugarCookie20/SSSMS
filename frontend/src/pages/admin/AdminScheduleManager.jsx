@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../api/axiosConfig';
 import {
     Clock, Calendar, BookOpen, GraduationCap,
-    CheckCircle, XCircle, Users, User, Trash2, Eye, Camera
+    CheckCircle, XCircle, Users, User, Trash2, Eye, Camera, ArrowLeft
 } from 'lucide-react';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import CameraCapture from '../../components/ui/CameraCapture';
@@ -24,6 +25,7 @@ const colorMap = {
 const formatYear = (str) => str.replace(/_/g, ' ').replace(/(^\w|\s\w)/g, (m) => m.toUpperCase());
 
 const AdminScheduleManager = () => {
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('timetable');
     const [confirm, setConfirm] = useState(null);
     const [showCamera, setShowCamera] = useState(false);
@@ -113,15 +115,23 @@ const AdminScheduleManager = () => {
     };
 
     const handleDelete = (year, type) => {
-        const labels = { calendar: 'College Calendar', academic: 'Academic Schedule' };
+        const labels = {
+            timetable: 'Class Timetable',
+            exam: 'Exam Schedule',
+            calendar: 'College Calendar',
+            academic: 'Academic Schedule',
+        };
         setConfirm({
             message: `Delete ${labels[type]} for ${formatYear(year)}?`,
             onConfirm: async () => {
                 try {
-                    const url = type === 'calendar'
-                        ? `/schedules/college-calendar/${year}`
-                        : `/schedules/academic-schedule/${year}`;
-                    await api.delete(url);
+                    const urlMap = {
+                        timetable: `/schedules/timetable/${year}`,
+                        exam: `/schedules/exam-schedule/${year}`,
+                        calendar: `/schedules/college-calendar/${year}`,
+                        academic: `/schedules/academic-schedule/${year}`,
+                    };
+                    await api.delete(urlMap[type]);
                     setStatus({ type: 'success', msg: 'Deleted successfully!' });
                     await fetchData();
                     setTimeout(() => setStatus(null), 3000);
@@ -142,6 +152,9 @@ const AdminScheduleManager = () => {
 
     return (
         <div className="max-w-5xl mx-auto">
+            <button onClick={() => navigate('/admin/dashboard')} className="mb-4 flex items-center text-gray-600 hover:text-blue-600 transition-colors">
+                <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
+            </button>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Schedule Manager</h1>
             <p className="text-gray-600 mb-8">Upload and manage timetables, exam schedules, college calendar, and academic schedules.</p>
 
@@ -265,68 +278,104 @@ const AdminScheduleManager = () => {
                 </form>
             </div>
 
-            {/* Status Table for Calendar & Academic Schedule */}
-            {(activeTab === 'calendar' || activeTab === 'academic') && (
-                <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                    <div className="px-6 py-4 border-b border-gray-200">
-                        <h2 className="text-lg font-bold text-gray-900">
-                            Published {activeTab === 'calendar' ? 'College Calendars' : 'Academic Schedules'}
-                        </h2>
+            {/* Status Table — shown for all tabs (timetable shows class timetables only) */}
+            {(() => {
+                const tableConfig = {
+                    timetable: {
+                        title: 'Published Class Timetables',
+                        hasFile: (item) => item.timetable,
+                        fileName: (item) => item.timetableFile,
+                        viewBase: 'http://localhost:8080/api/timetable/view',
+                        delType: 'timetable',
+                    },
+                    exam: {
+                        title: 'Published Exam Schedules',
+                        hasFile: (item) => item.examSchedule,
+                        fileName: (item) => item.examScheduleFile,
+                        viewBase: 'http://localhost:8080/api/exams/view',
+                        delType: 'exam',
+                    },
+                    calendar: {
+                        title: 'Published College Calendars',
+                        hasFile: (item) => item.collegeCalendar,
+                        fileName: (item) => item.collegeCalendarFile,
+                        viewBase: 'http://localhost:8080/api/schedules/view',
+                        delType: 'calendar',
+                    },
+                    academic: {
+                        title: 'Published Academic Schedules',
+                        hasFile: (item) => item.academicSchedule,
+                        fileName: (item) => item.academicScheduleFile,
+                        viewBase: 'http://localhost:8080/api/schedules/view',
+                        delType: 'academic',
+                    },
+                };
+
+                // For the timetable tab only show when CLASS subtype is selected
+                if (activeTab === 'timetable' && uploadSubType === 'FACULTY') return null;
+
+                const cfg = tableConfig[activeTab];
+                if (!cfg) return null;
+
+                return (
+                    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                        <div className="px-6 py-4 border-b border-gray-200">
+                            <h2 className="text-lg font-bold text-gray-900">{cfg.title}</h2>
+                        </div>
+                        <div className="overflow-x-auto">
+                            <table className="w-full">
+                                <thead>
+                                    <tr className="bg-gray-50 border-b border-gray-200">
+                                        <th className="text-left px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Year</th>
+                                        <th className="text-center px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th className="text-center px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100">
+                                    {scheduleStatus.map((item) => {
+                                        const hasFile = cfg.hasFile(item);
+                                        const fileName = cfg.fileName(item);
+                                        return (
+                                            <tr key={item.year} className="hover:bg-gray-50">
+                                                <td className="px-6 py-4 font-medium text-gray-900">{formatYear(item.year)}</td>
+                                                <td className="px-6 py-4 text-center">
+                                                    {hasFile ? (
+                                                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700">Uploaded</span>
+                                                    ) : (
+                                                        <span className="text-gray-400 text-sm">Not uploaded</span>
+                                                    )}
+                                                </td>
+                                                <td className="px-6 py-4 text-center">
+                                                    {hasFile && (
+                                                        <div className="flex items-center justify-center gap-2">
+                                                            <a
+                                                                href={`${cfg.viewBase}/${fileName}`}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                                className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                                title="View"
+                                                            >
+                                                                <Eye className="w-4 h-4" />
+                                                            </a>
+                                                            <button
+                                                                onClick={() => handleDelete(item.year, cfg.delType)}
+                                                                className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                                title="Delete"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead>
-                                <tr className="bg-gray-50 border-b border-gray-200">
-                                    <th className="text-left px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Year</th>
-                                    <th className="text-center px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th className="text-center px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100">
-                                {scheduleStatus.map((item) => {
-                                    const hasFile = activeTab === 'calendar' ? item.collegeCalendar : item.academicSchedule;
-                                    const fileName = activeTab === 'calendar' ? item.collegeCalendarFile : item.academicScheduleFile;
-                                    const delType = activeTab === 'calendar' ? 'calendar' : 'academic';
-                                    return (
-                                        <tr key={item.year} className="hover:bg-gray-50">
-                                            <td className="px-6 py-4 font-medium text-gray-900">{formatYear(item.year)}</td>
-                                            <td className="px-6 py-4 text-center">
-                                                {hasFile ? (
-                                                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700">Uploaded</span>
-                                                ) : (
-                                                    <span className="text-gray-400 text-sm">Not uploaded</span>
-                                                )}
-                                            </td>
-                                            <td className="px-6 py-4 text-center">
-                                                {hasFile && (
-                                                    <div className="flex items-center justify-center gap-2">
-                                                        <a
-                                                            href={`http://localhost:8080/api/schedules/view/${fileName}`}
-                                                            target="_blank"
-                                                            rel="noreferrer"
-                                                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                                            title="View"
-                                                        >
-                                                            <Eye className="w-4 h-4" />
-                                                        </a>
-                                                        <button
-                                                            onClick={() => handleDelete(item.year, delType)}
-                                                            className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                            title="Delete"
-                                                        >
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            )}
+                );
+            })()}
             <ConfirmDialog config={confirm} onClose={() => setConfirm(null)} />
             <CameraCapture
                 open={showCamera}

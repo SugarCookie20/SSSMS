@@ -78,6 +78,26 @@ public class ScheduleController {
         return ResponseEntity.ok("Academic Schedule removed for " + year);
     }
 
+    @DeleteMapping("/timetable/{year}")
+    public ResponseEntity<?> deleteTimetable(@PathVariable AcademicYear year) {
+        YearMetadata metadata = yearRepository.findById(year).orElse(null);
+        if (metadata != null) {
+            metadata.setTimetablePdf(null);
+            yearRepository.save(metadata);
+        }
+        return ResponseEntity.ok("Timetable removed for " + year);
+    }
+
+    @DeleteMapping("/exam-schedule/{year}")
+    public ResponseEntity<?> deleteExamSchedule(@PathVariable AcademicYear year) {
+        YearMetadata metadata = yearRepository.findById(year).orElse(null);
+        if (metadata != null) {
+            metadata.setExamSchedulePdf(null);
+            yearRepository.save(metadata);
+        }
+        return ResponseEntity.ok("Exam Schedule removed for " + year);
+    }
+
     // ===================== STUDENT VIEW ENDPOINTS =====================
 
     @GetMapping("/student/me")
@@ -111,6 +131,10 @@ public class ScheduleController {
             YearMetadata metadata = yearRepository.findById(year).orElse(null);
             Map<String, Object> map = new HashMap<>();
             map.put("year", year.name());
+            map.put("timetable", metadata != null && metadata.getTimetablePdf() != null);
+            map.put("timetableFile", metadata != null ? metadata.getTimetablePdf() : null);
+            map.put("examSchedule", metadata != null && metadata.getExamSchedulePdf() != null);
+            map.put("examScheduleFile", metadata != null ? metadata.getExamSchedulePdf() : null);
             map.put("collegeCalendar", metadata != null && metadata.getCollegeCalendarPdf() != null);
             map.put("collegeCalendarFile", metadata != null ? metadata.getCollegeCalendarPdf() : null);
             map.put("academicSchedule", metadata != null && metadata.getAcademicSchedulePdf() != null);

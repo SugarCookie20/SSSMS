@@ -1,24 +1,31 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../api/axiosConfig';
 import { useAuth } from '../../auth/useAuth';
-import { Bell, Megaphone, Send, Clock, User, CheckCircle, XCircle, Paperclip, Download, Camera } from 'lucide-react';
+import { Bell, Megaphone, Send, Clock, User, CheckCircle, XCircle, Paperclip, Download, Camera, Trash2, Timer, ArrowLeft } from 'lucide-react';
 import CameraCapture from '../../components/ui/CameraCapture';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 
 const NoticesPage = () => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [notices, setNotices] = useState([]);
     const [showCamera, setShowCamera] = useState(false);
+    const [confirmDelete, setConfirmDelete] = useState(null);
 
     // Updated State for File
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [targetRole, setTargetRole] = useState('ALL');
+    const [visibility, setVisibility] = useState('FOREVER');
     const [file, setFile] = useState(null);
 
     const [loading, setLoading] = useState(true);
     const [status, setStatus] = useState({ type: '', message: '' });
 
     const canPost = user.role === 'ROLE_ADMIN' || user.role === 'ROLE_FACULTY';
+    const canDelete = user.role === 'ROLE_ADMIN' || user.role === 'ROLE_FACULTY';
+    const dashboardPath = user.role === 'ROLE_ADMIN' ? '/admin/dashboard' : user.role === 'ROLE_FACULTY' ? '/faculty/dashboard' : '/student/dashboard';
 
     const fetchNotices = async () => {
         try {
@@ -44,6 +51,7 @@ const NoticesPage = () => {
         formData.append('title', title);
         formData.append('content', content);
         formData.append('targetRole', targetRole);
+        formData.append('visibility', visibility);
         if (file) {
             formData.append('file', file);
         }
@@ -58,6 +66,7 @@ const NoticesPage = () => {
             setTitle('');
             setContent('');
             setTargetRole('ALL');
+            setVisibility('FOREVER');
             setFile(null);
 
             fetchNotices();
@@ -82,8 +91,39 @@ const NoticesPage = () => {
         }
     };
 
+    const handleDelete = async (noticeId) => {
+        setConfirmDelete({
+            message: 'Are you sure you want to delete this notice? This action cannot be undone.',
+            onConfirm: async () => {
+                try {
+                    await api.delete(`/notices/${noticeId}`);
+                    setStatus({ type: 'success', message: 'Notice deleted successfully!' });
+                    fetchNotices();
+                    setTimeout(() => setStatus({ type: '', message: '' }), 3000);
+                } catch (error) {
+                    setStatus({ type: 'error', message: error.response?.data || 'Failed to delete notice.' });
+                    setTimeout(() => setStatus({ type: '', message: '' }), 3000);
+                }
+            },
+        });
+    };
+
+    const getVisibilityLabel = (expiresAt) => {
+        if (!expiresAt) return 'Forever';
+        const expires = new Date(expiresAt);
+        const now = new Date();
+        const diffMs = expires - now;
+        const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+        if (diffDays <= 0) return 'Expired';
+        if (diffDays === 1) return '1 day left';
+        return `${diffDays} days left`;
+    };
+
     return (
         <div className="max-w-4xl mx-auto">
+            <button onClick={() => navigate(dashboardPath)} className="mb-4 flex items-center text-gray-600 hover:text-blue-600 transition-colors">
+                <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
+            </button>
             <div className="flex items-center justify-between mb-8">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900">Digital Notice Board</h1>
@@ -94,20 +134,30 @@ const NoticesPage = () => {
                 </div>
             </div>
 
+            {/* Status Toast Banner */}
+            {status.message && (
+                <div className={`p-4 mb-6 rounded-lg flex items-center border ${
+                    status.type === 'success'
+                        ? 'bg-green-50 text-green-700 border-green-200'
+                        : 'bg-red-50 text-red-700 border-red-200'
+                }`}>
+                    {status.type === 'success' ? (
+                        <CheckCircle className="w-5 h-5 mr-3" />
+                    ) : (
+                        <XCircle className="w-5 h-5 mr-3" />
+                    )}
+                    <span className="font-medium">{status.message}</span>
+                </div>
+            )}
+
             {canPost && (
                 <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-8">
                     <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
                         <Megaphone className="w-5 h-5 mr-2 text-blue-600" /> Post New Announcement
                     </h2>
 
-                    {status.message && (
-                        <div className={`p-3 mb-4 rounded-lg flex items-center text-sm ${status.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                            {status.message}
-                        </div>
-                    )}
-
                     <form onSubmit={handlePost} className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                             <div className="md:col-span-2">
                                 <input
                                     placeholder="Notice Title"
@@ -126,6 +176,19 @@ const NoticesPage = () => {
                                     <option value="ALL">Everyone</option>
                                     <option value="STUDENT">Students Only</option>
                                     <option value="FACULTY">Faculty Only</option>
+                                </select>
+                            </div>
+                            <div>
+                                <select
+                                    value={visibility}
+                                    onChange={(e) => setVisibility(e.target.value)}
+                                    className="w-full p-2.5 border rounded-lg bg-gray-50"
+                                >
+                                    <option value="1_DAY">1 Day</option>
+                                    <option value="1_WEEK">1 Week</option>
+                                    <option value="15_DAYS">15 Days</option>
+                                    <option value="1_MONTH">1 Month</option>
+                                    <option value="FOREVER">Forever</option>
                                 </select>
                             </div>
                         </div>
@@ -179,9 +242,26 @@ const NoticesPage = () => {
                     <div key={notice.id} className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
                         <div className="flex justify-between items-start mb-2">
                             <h3 className="text-lg font-bold text-gray-900">{notice.title}</h3>
-                            <span className="text-xs font-medium px-2 py-1 rounded-full bg-gray-100 text-gray-600">
-                {notice.target}
-              </span>
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs font-medium px-2 py-1 rounded-full bg-gray-100 text-gray-600">
+                                    {notice.target}
+                                </span>
+                                <span className={`text-xs font-medium px-2 py-1 rounded-full flex items-center gap-1 ${
+                                    notice.expiresAt ? 'bg-amber-50 text-amber-700' : 'bg-green-50 text-green-700'
+                                }`}>
+                                    <Timer className="w-3 h-3" />
+                                    {getVisibilityLabel(notice.expiresAt)}
+                                </span>
+                                {canDelete && (
+                                    <button
+                                        onClick={() => handleDelete(notice.id)}
+                                        className="text-red-400 hover:text-red-600 p-1 rounded hover:bg-red-50 transition-colors"
+                                        title="Delete Notice"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                )}
+                            </div>
                         </div>
                         <p className="text-gray-600 mb-4 whitespace-pre-wrap">{notice.content}</p>
 
@@ -214,6 +294,11 @@ const NoticesPage = () => {
                 open={showCamera}
                 onClose={() => setShowCamera(false)}
                 onCapture={(f) => { setFile(f); setShowCamera(false); }}
+            />
+
+            <ConfirmDialog
+                config={confirmDelete}
+                onClose={() => setConfirmDelete(null)}
             />
         </div>
     );

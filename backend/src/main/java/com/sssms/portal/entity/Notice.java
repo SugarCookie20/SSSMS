@@ -24,6 +24,8 @@ public class Notice {
 
     private LocalDateTime date;
 
+    private LocalDateTime expiresAt; // null means forever
+
     @Enumerated(EnumType.STRING)
     private TargetRole targetRole;
 

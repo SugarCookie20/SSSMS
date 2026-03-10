@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../api/axiosConfig';
-import { Calendar, Clock, GraduationCap, BookOpen, Download } from 'lucide-react';
+import { Calendar, Clock, GraduationCap, BookOpen, Download, ArrowLeft } from 'lucide-react';
 
 const TABS = [
     { key: 'exam', label: 'Exam Schedule', icon: Calendar, color: 'blue' },
@@ -17,6 +18,7 @@ const colorClasses = {
 };
 
 const StudentSchedules = () => {
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('exam');
     const [loading, setLoading] = useState(true);
     const [schedules, setSchedules] = useState({
@@ -73,6 +75,9 @@ const StudentSchedules = () => {
 
     return (
         <div className="max-w-7xl mx-auto h-[calc(100vh-100px)] flex flex-col">
+            <button onClick={() => navigate('/student/dashboard')} className="mb-4 flex items-center text-gray-600 hover:text-blue-600 transition-colors">
+                <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
+            </button>
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
                 <div>

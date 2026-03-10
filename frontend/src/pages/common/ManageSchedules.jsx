@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../../api/axiosConfig';
 import {
     Upload, BookOpen, CheckCircle, XCircle,
-    Trash2, Eye, GraduationCap
+    Trash2, Eye, GraduationCap, ArrowLeft
 } from 'lucide-react';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 
 const ManageSchedules = () => {
+    const navigate = useNavigate();
+    const location = useLocation();
+    const dashboardPath = location.pathname.startsWith('/admin') ? '/admin/dashboard' : '/faculty/dashboard';
     const [years, setYears] = useState([]);
     const [scheduleType, setScheduleType] = useState('CALENDAR');
     const [selectedYear, setSelectedYear] = useState('');
@@ -86,6 +90,9 @@ const ManageSchedules = () => {
 
     return (
         <div className="max-w-5xl mx-auto">
+            <button onClick={() => navigate(dashboardPath)} className="mb-4 flex items-center text-gray-600 hover:text-blue-600 transition-colors">
+                <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
+            </button>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Schedule Management</h1>
             <p className="text-gray-600 mb-8">Upload and manage College Calendar and Academic Schedules for each academic year.</p>
 

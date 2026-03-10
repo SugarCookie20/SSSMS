@@ -29,16 +29,57 @@ public class GradingService {
             SubjectAllocation allocation = allocationRepository.findById(req.getAllocationId()).orElseThrow();
             Subject subject = allocation.getSubject();
 
-            AcademicMarks mark = AcademicMarks.builder()
-                    .student(student)
-                    .subject(subject)
-                    .examType(req.getExamType())
-                    .marksObtained(req.getMarks())
-                    .maxMarks(req.getMaxMarks())
-                    .build();
+            // Upsert: update if exists, insert if not
+            Optional<AcademicMarks> existing = marksRepository
+                    .findByStudentIdAndSubjectIdAndExamType(student.getId(), subject.getId(), req.getExamType());
 
-            marksRepository.save(mark);
+            if (existing.isPresent()) {
+                AcademicMarks mark = existing.get();
+                mark.setMarksObtained(req.getMarks());
+                mark.setMaxMarks(req.getMaxMarks());
+                marksRepository.save(mark);
+            } else {
+                AcademicMarks mark = AcademicMarks.builder()
+                        .student(student)
+                        .subject(subject)
+                        .examType(req.getExamType())
+                        .marksObtained(req.getMarks())
+                        .maxMarks(req.getMaxMarks())
+                        .build();
+                marksRepository.save(mark);
+            }
         }
+    }
+
+    /**
+     * Returns list of ExamTypes already graded for a given allocation's subject.
+     */
+    public List<String> getGradedExamTypes(Long allocationId) {
+        SubjectAllocation allocation = allocationRepository.findById(allocationId).orElseThrow();
+        Subject subject = allocation.getSubject();
+
+        List<AcademicMarks> allMarks = marksRepository.findBySubjectId(subject.getId());
+        return allMarks.stream()
+                .map(m -> m.getExamType().name())
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Returns existing marks for a given allocation + examType, so the frontend can pre-fill for editing.
+     */
+    public List<Map<String, Object>> getMarksForExamType(Long allocationId, ExamType examType) {
+        SubjectAllocation allocation = allocationRepository.findById(allocationId).orElseThrow();
+        Subject subject = allocation.getSubject();
+
+        List<AcademicMarks> marks = marksRepository.findBySubjectIdAndExamType(subject.getId(), examType);
+        return marks.stream().map(m -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("studentId", m.getStudent().getId());
+            map.put("marksObtained", m.getMarksObtained());
+            map.put("maxMarks", m.getMaxMarks());
+            return map;
+        }).collect(Collectors.toList());
     }
 
     public List<Map<String, Object>> generateReportCard(Long studentId) {

@@ -179,7 +179,7 @@ public class AdminController {
 
     @DeleteMapping("/student/{id}")
         public ResponseEntity<?> deleteStudent(@PathVariable Long id) {
-            userRepository.deleteById(id);
+            adminService.deleteStudent(id);
             return ResponseEntity.ok("Student Un-enrolled Successfully");
         }
 

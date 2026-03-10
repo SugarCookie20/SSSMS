@@ -1,9 +1,10 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../api/axiosConfig';
 import {
     ScrollText, Filter, ChevronLeft, ChevronRight, AlertTriangle,
-    RefreshCw, Search, X, Clock, User, Shield, Activity
+    RefreshCw, Search, X, Clock, User, Shield, Activity, ArrowLeft
 } from 'lucide-react';
 
 const ACTION_COLORS = {
@@ -120,6 +121,7 @@ const ACTION_LABELS = {
 };
 
 const ActivityLogs = () => {
+    const navigate = useNavigate();
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(0);
@@ -252,6 +254,9 @@ const ActivityLogs = () => {
 
     return (
         <div className="max-w-full mx-auto">
+            <button onClick={() => navigate('/admin/dashboard')} className="mb-4 flex items-center text-gray-600 hover:text-blue-600 transition-colors">
+                <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
+            </button>
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <div>

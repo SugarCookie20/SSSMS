@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../api/axiosConfig';
-import { BookOpen, Plus, CheckCircle, XCircle, Trash2 } from 'lucide-react';
+import { BookOpen, Plus, CheckCircle, XCircle, Trash2, ArrowLeft } from 'lucide-react';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 
 const AcademicSetup = () => {
+    const navigate = useNavigate();
     const [subject, setSubject] = useState({
         name: '',
         code: '',
@@ -72,6 +74,9 @@ const AcademicSetup = () => {
 
     return (
         <div className="max-w-4xl mx-auto space-y-8">
+            <button onClick={() => navigate('/admin/dashboard')} className="mb-2 flex items-center text-gray-600 hover:text-blue-600 transition-colors">
+                <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
+            </button>
             <div className="mb-8">
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">Academic Setup</h1>
                 <p className="text-gray-600">Define the curriculum and subjects for each year.</p>

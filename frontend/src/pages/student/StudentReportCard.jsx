@@ -1,10 +1,12 @@
 //check
 
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../api/axiosConfig';
-import { BookOpen, Award, TrendingUp } from 'lucide-react';
+import { BookOpen, Award, TrendingUp, ArrowLeft } from 'lucide-react';
 
 const StudentReportCard = () => {
+    const navigate = useNavigate();
     const [report, setReport] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -26,6 +28,9 @@ const StudentReportCard = () => {
 
     return (
         <div className="max-w-6xl mx-auto pb-10">
+            <button onClick={() => navigate('/student/dashboard')} className="mb-4 flex items-center text-gray-600 hover:text-blue-600 transition-colors">
+                <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
+            </button>
             <div className="flex items-center gap-3 mb-8">
                 <Award className="w-8 h-8 text-blue-600" />
                 <h1 className="text-3xl font-bold text-gray-900">Academic Report Card</h1>
