@@ -14,14 +14,14 @@ import {
 
 const FacultyDashboard = () => {
     const { user } = useAuth();
-    const [latestNotice, setLatestNotice] = useState(null);
+    const [recentNotices, setRecentNotices] = useState([]);
 
     useEffect(() => {
         const fetchNotices = async () => {
             try {
                 const response = await api.get('/notices');
                 if (response.data && response.data.length > 0) {
-                    setLatestNotice(response.data[0]);
+                    setRecentNotices(response.data);
                 }
             } catch (error) {
                 console.error("Failed to load notices");
@@ -134,20 +134,24 @@ const FacultyDashboard = () => {
             <div>
                 <h2 className="text-xl font-bold text-gray-900 mb-6">Recent Notices</h2>
                 <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-                    {latestNotice ? (
-                        <div className="flex items-start">
-                            <div className="p-2 bg-yellow-50 text-yellow-600 rounded-lg mr-4 mt-1">
-                                <Bell className="w-5 h-5" />
-                            </div>
-                            <div>
-                                <h3 className="text-lg font-bold text-gray-900 mb-1">{latestNotice.title}</h3>
-                                <p className="text-gray-600 mb-2">{latestNotice.content}</p>
-                                <div className="flex items-center text-xs text-gray-400">
-                                    <span>{new Date(latestNotice.date).toLocaleDateString()}</span>
-                                    <span className="mx-2">•</span>
-                                    <span>{latestNotice.author}</span>
+                    {recentNotices.length > 0 ? (
+                        <div className="space-y-4 max-h-96 overflow-y-auto">
+                            {recentNotices.map((notice) => (
+                                <div key={notice.id} className="flex items-start border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+                                    <div className="p-2 bg-yellow-50 text-yellow-600 rounded-lg mr-4 mt-1 shrink-0">
+                                        <Bell className="w-5 h-5" />
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <h3 className="text-base font-bold text-gray-900 mb-1">{notice.title}</h3>
+                                        <p className="text-gray-600 text-sm mb-2 line-clamp-2">{notice.content}</p>
+                                        <div className="flex items-center text-xs text-gray-400">
+                                            <span>{new Date(notice.date).toLocaleDateString()}</span>
+                                            <span className="mx-2">•</span>
+                                            <span>{notice.author}</span>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
+                            ))}
                         </div>
                     ) : (
                         <div className="text-center text-gray-500 py-4">No recent notices found.</div>
