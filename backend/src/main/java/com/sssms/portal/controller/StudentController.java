@@ -140,7 +140,23 @@ public class StudentController {
         Map<String, Object> scorecard = new HashMap<>();
         scorecard.put("studentName", student.getFirstName() + " " + student.getLastName());
         scorecard.put("prn", student.getPrn());
-        scorecard.put("academicYear", student.getAcademicYear() != null ? student.getAcademicYear().toString() : "N/A");
+
+        // Format academic year nicely (FIRST_YEAR -> "First Year")
+        String formattedYear = "N/A";
+        if (student.getAcademicYear() != null) {
+            formattedYear = student.getAcademicYear().name().replace("_", " ");
+            formattedYear = formattedYear.substring(0, 1).toUpperCase()
+                    + formattedYear.substring(1).toLowerCase();
+            // Capitalize each word
+            String[] words = formattedYear.split(" ");
+            StringBuilder sb = new StringBuilder();
+            for (String w : words) {
+                if (!sb.isEmpty()) sb.append(" ");
+                sb.append(w.substring(0, 1).toUpperCase()).append(w.substring(1));
+            }
+            formattedYear = sb.toString();
+        }
+        scorecard.put("academicYear", formattedYear);
         scorecard.put("subjects", reportCard);
 
         // Calculate overall statistics
