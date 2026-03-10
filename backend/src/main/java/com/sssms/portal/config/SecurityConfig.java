@@ -46,6 +46,7 @@ public class SecurityConfig {
 
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers("/api/auth/change-password").authenticated()
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/timetable/view/**", "/api/exams/view/**", "/api/schedules/view/**").permitAll()
                 .requestMatchers("/api/notices/download/**", "/api/resources/download/**", "/api/resources/view/**").permitAll()

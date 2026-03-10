@@ -127,6 +127,7 @@ public class LoggingInterceptor implements HandlerInterceptor {
         if (endpoint.contains("/api/auth/login")) return LogAction.LOGIN;
         if (endpoint.contains("/api/auth/logout")) return LogAction.LOGOUT;
         if (endpoint.contains("/api/auth/register")) return LogAction.REGISTER;
+        if (endpoint.contains("/api/auth/change-password")) return LogAction.PASSWORD_CHANGED;
         if (endpoint.contains("/api/auth/me")) return LogAction.DATA_VIEWED;
 
         if (endpoint.matches(".*/api/admin/enroll-student") && "POST".equals(httpMethod)) return LogAction.STUDENT_ENROLLED;
@@ -155,14 +156,39 @@ public class LoggingInterceptor implements HandlerInterceptor {
 
         if (endpoint.contains("/api/admin/fees/init")) return LogAction.FEE_INITIALIZED;
         if (endpoint.contains("/api/admin/fees/pay")) return LogAction.FEE_PAYMENT_RECORDED;
+        if (endpoint.matches(".*/api/admin/fees/update-total/\\d+") && "PUT".equals(httpMethod)) return LogAction.FEE_TOTAL_UPDATED;
+        if (endpoint.contains("/api/admin/fees/reminders") && "POST".equals(httpMethod)) return LogAction.FEE_REMINDER_CREATED;
+        if (endpoint.matches(".*/api/admin/fees/reminders/\\d+") && "DELETE".equals(httpMethod)) return LogAction.FEE_REMINDER_DELETED;
+        if (endpoint.matches(".*/api/admin/fees/reminders/\\d+/deactivate") && "PUT".equals(httpMethod)) return LogAction.FEE_REMINDER_DEACTIVATED;
+        if (endpoint.matches(".*/api/admin/fees/scholarship/\\d+") && "PUT".equals(httpMethod)) return LogAction.SCHOLARSHIP_UPDATED;
 
         if (endpoint.contains("/api/notices") && "POST".equals(httpMethod)) return LogAction.NOTICE_CREATED;
 
+        if (endpoint.contains("/api/timetable/upload/faculty")) return LogAction.FACULTY_TIMETABLE_UPLOADED;
         if (endpoint.contains("/api/timetable/upload")) return LogAction.TIMETABLE_UPLOADED;
         if (endpoint.contains("/api/exams/upload")) return LogAction.EXAM_SCHEDULE_UPLOADED;
 
+        if (endpoint.contains("/api/schedules/upload/college-calendar")) return LogAction.COLLEGE_CALENDAR_UPLOADED;
+        if (endpoint.contains("/api/schedules/upload/academic-schedule")) return LogAction.ACADEMIC_SCHEDULE_UPLOADED;
+        if (endpoint.matches(".*/api/schedules/college-calendar/.*") && "DELETE".equals(httpMethod)) return LogAction.COLLEGE_CALENDAR_DELETED;
+        if (endpoint.matches(".*/api/schedules/academic-schedule/.*") && "DELETE".equals(httpMethod)) return LogAction.ACADEMIC_SCHEDULE_DELETED;
+
         if (endpoint.contains("/api/resources/upload")) return LogAction.RESOURCE_UPLOADED;
         if (endpoint.contains("/api/resources/download")) return LogAction.RESOURCE_DOWNLOADED;
+        if (endpoint.matches(".*/api/resources/\\d+") && "DELETE".equals(httpMethod)) return LogAction.RESOURCE_DELETED;
+
+        if (endpoint.matches(".*/api/faculty/attendance/\\d+") && "PUT".equals(httpMethod)) return LogAction.ATTENDANCE_UPDATED;
+        if (endpoint.matches(".*/api/faculty/attendance/\\d+") && "DELETE".equals(httpMethod)) return LogAction.ATTENDANCE_SESSION_DELETED;
+
+        if (endpoint.contains("/api/faculty/marks/batch") && "POST".equals(httpMethod)) return LogAction.MARKS_BATCH_SAVED;
+
+        if (endpoint.contains("/api/faculty/professional-development") && "POST".equals(httpMethod)) return LogAction.PD_ENTRY_ADDED;
+        if (endpoint.matches(".*/api/faculty/professional-development/\\d+") && "DELETE".equals(httpMethod)) return LogAction.PD_ENTRY_DELETED;
+        if (endpoint.matches(".*/api/admin/faculty/\\d+/pd") && "POST".equals(httpMethod)) return LogAction.PD_ENTRY_ADDED;
+        if (endpoint.matches(".*/api/admin/pd/\\d+") && "DELETE".equals(httpMethod)) return LogAction.PD_ENTRY_DELETED;
+
+        if (endpoint.contains("/api/admin/gpa/batch") && "POST".equals(httpMethod)) return LogAction.GPA_BATCH_ENTERED;
+        if (endpoint.contains("/api/admin/gpa/enter") && "POST".equals(httpMethod)) return LogAction.GPA_ENTERED;
 
         if ("GET".equals(httpMethod)) return LogAction.DATA_VIEWED;
         return LogAction.UNKNOWN;
@@ -187,6 +213,7 @@ public class LoggingInterceptor implements HandlerInterceptor {
             case LOGIN -> "User logged in";
             case LOGOUT -> "User logged out";
             case REGISTER -> "New user registered";
+            case PASSWORD_CHANGED -> "User changed password";
             case STUDENT_ENROLLED -> "New student enrolled";
             case STUDENT_UPDATED -> "Student record updated";
             case STUDENT_DELETED -> "Student un-enrolled";
@@ -207,11 +234,29 @@ public class LoggingInterceptor implements HandlerInterceptor {
             case RESULTS_UPLOADED -> "Exam results uploaded";
             case FEE_INITIALIZED -> "Fee initialized for student";
             case FEE_PAYMENT_RECORDED -> "Fee payment recorded";
+            case FEE_TOTAL_UPDATED -> "Total fee amount updated";
+            case FEE_REMINDER_CREATED -> "Fee reminder created";
+            case FEE_REMINDER_DELETED -> "Fee reminder deleted";
+            case FEE_REMINDER_DEACTIVATED -> "Fee reminder deactivated";
+            case SCHOLARSHIP_UPDATED -> "Scholarship status updated";
             case NOTICE_CREATED -> "Notice posted";
-            case TIMETABLE_UPLOADED -> "Timetable uploaded";
+            case TIMETABLE_UPLOADED -> "Class timetable uploaded";
+            case FACULTY_TIMETABLE_UPLOADED -> "Faculty timetable uploaded";
             case EXAM_SCHEDULE_UPLOADED -> "Exam schedule uploaded";
+            case COLLEGE_CALENDAR_UPLOADED -> "College calendar uploaded";
+            case COLLEGE_CALENDAR_DELETED -> "College calendar removed";
+            case ACADEMIC_SCHEDULE_UPLOADED -> "Academic schedule uploaded";
+            case ACADEMIC_SCHEDULE_DELETED -> "Academic schedule removed";
             case RESOURCE_UPLOADED -> "Academic resource uploaded";
             case RESOURCE_DOWNLOADED -> "Academic resource downloaded";
+            case RESOURCE_DELETED -> "Academic resource deleted";
+            case ATTENDANCE_UPDATED -> "Attendance record updated";
+            case ATTENDANCE_SESSION_DELETED -> "Attendance session deleted";
+            case MARKS_BATCH_SAVED -> "Batch marks saved";
+            case PD_ENTRY_ADDED -> "Professional development entry added";
+            case PD_ENTRY_DELETED -> "Professional development entry deleted";
+            case GPA_ENTERED -> "SGPA entered for student";
+            case GPA_BATCH_ENTERED -> "Batch SGPA entered";
             case DATA_VIEWED -> httpMethod + " " + endpoint;
             case ERROR -> "Error at " + endpoint;
             case UNKNOWN -> httpMethod + " " + endpoint;

@@ -52,6 +52,9 @@ const FacultyProfileView = () => {
                     <h3 className="text-lg font-bold mb-4 flex items-center"><GraduationCap className="w-5 h-5 mr-2 text-purple-600"/> Qualification</h3>
                     <p className="text-gray-700">{profile.qualification || "Not Provided"}</p>
 
+                    <h3 className="text-lg font-bold mt-6 mb-4 flex items-center"><Calendar className="w-5 h-5 mr-2 text-purple-600"/> Date of Birth</h3>
+                    <p className="text-gray-700">{profile.dob ? new Date(profile.dob).toLocaleDateString() : "Not Provided"}</p>
+
                     <h3 className="text-lg font-bold mt-6 mb-4 flex items-center"><Calendar className="w-5 h-5 mr-2 text-purple-600"/> Date of Joining</h3>
                     <p className="text-gray-700">{new Date(profile.joiningDate).toLocaleDateString()}</p>
                 </div>

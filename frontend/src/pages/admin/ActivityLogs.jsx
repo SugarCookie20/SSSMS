@@ -14,14 +14,50 @@ const ACTION_COLORS = {
     STUDENT_ENROLLED: 'bg-emerald-100 text-emerald-700',
     STUDENT_UPDATED: 'bg-yellow-100 text-yellow-700',
     STUDENT_DELETED: 'bg-red-100 text-red-700',
+    STUDENT_PROFILE_VIEWED: 'bg-slate-100 text-slate-600',
     FACULTY_ENROLLED: 'bg-emerald-100 text-emerald-700',
     FACULTY_DELETED: 'bg-red-100 text-red-700',
+    FACULTY_PROFILE_VIEWED: 'bg-slate-100 text-slate-600',
+    PASSWORD_CHANGED: 'bg-amber-100 text-amber-700',
+    SUBJECT_CREATED: 'bg-blue-100 text-blue-700',
+    SUBJECT_DELETED: 'bg-red-100 text-red-700',
+    SUBJECT_ALLOCATED: 'bg-teal-100 text-teal-700',
+    ALLOCATION_REMOVED: 'bg-red-100 text-red-700',
+    COURSE_ASSIGNED: 'bg-teal-100 text-teal-700',
+    COURSE_REMOVED: 'bg-red-100 text-red-700',
     ATTENDANCE_MARKED: 'bg-indigo-100 text-indigo-700',
+    ATTENDANCE_UPDATED: 'bg-indigo-100 text-indigo-700',
+    ATTENDANCE_SESSION_DELETED: 'bg-red-100 text-red-700',
+    ATTENDANCE_REPORT_VIEWED: 'bg-slate-100 text-slate-600',
+    ATTENDANCE_REPORT_DOWNLOADED: 'bg-indigo-100 text-indigo-700',
     ASSESSMENT_CREATED: 'bg-purple-100 text-purple-700',
+    RESULTS_UPLOADED: 'bg-purple-100 text-purple-700',
+    MARKS_BATCH_SAVED: 'bg-purple-100 text-purple-700',
     NOTICE_CREATED: 'bg-cyan-100 text-cyan-700',
+    FEE_INITIALIZED: 'bg-green-100 text-green-700',
     FEE_PAYMENT_RECORDED: 'bg-green-100 text-green-700',
+    FEE_TOTAL_UPDATED: 'bg-yellow-100 text-yellow-700',
+    FEE_REMINDER_CREATED: 'bg-cyan-100 text-cyan-700',
+    FEE_REMINDER_DELETED: 'bg-red-100 text-red-700',
+    FEE_REMINDER_DEACTIVATED: 'bg-gray-100 text-gray-700',
+    SCHOLARSHIP_UPDATED: 'bg-amber-100 text-amber-700',
+    TIMETABLE_UPLOADED: 'bg-blue-100 text-blue-700',
+    FACULTY_TIMETABLE_UPLOADED: 'bg-blue-100 text-blue-700',
+    EXAM_SCHEDULE_UPLOADED: 'bg-blue-100 text-blue-700',
+    COLLEGE_CALENDAR_UPLOADED: 'bg-blue-100 text-blue-700',
+    COLLEGE_CALENDAR_DELETED: 'bg-red-100 text-red-700',
+    ACADEMIC_SCHEDULE_UPLOADED: 'bg-blue-100 text-blue-700',
+    ACADEMIC_SCHEDULE_DELETED: 'bg-red-100 text-red-700',
+    RESOURCE_UPLOADED: 'bg-teal-100 text-teal-700',
+    RESOURCE_DOWNLOADED: 'bg-teal-100 text-teal-700',
+    RESOURCE_DELETED: 'bg-red-100 text-red-700',
+    PD_ENTRY_ADDED: 'bg-violet-100 text-violet-700',
+    PD_ENTRY_DELETED: 'bg-red-100 text-red-700',
+    GPA_ENTERED: 'bg-purple-100 text-purple-700',
+    GPA_BATCH_ENTERED: 'bg-purple-100 text-purple-700',
     ERROR: 'bg-red-100 text-red-800',
     DATA_VIEWED: 'bg-slate-100 text-slate-600',
+    UNKNOWN: 'bg-gray-100 text-gray-600',
 };
 
 const ROLE_OPTIONS = [
@@ -30,6 +66,59 @@ const ROLE_OPTIONS = [
     { value: 'ROLE_FACULTY', label: 'Faculty' },
     { value: 'ROLE_STUDENT', label: 'Student' },
 ];
+
+const ACTION_LABELS = {
+    LOGIN: 'Login',
+    LOGOUT: 'Logout',
+    REGISTER: 'Register',
+    PASSWORD_CHANGED: 'Password Changed',
+    STUDENT_ENROLLED: 'Student Enrolled',
+    STUDENT_UPDATED: 'Student Updated',
+    STUDENT_DELETED: 'Student Deleted',
+    STUDENT_PROFILE_VIEWED: 'Student Profile Viewed',
+    FACULTY_ENROLLED: 'Faculty Enrolled',
+    FACULTY_DELETED: 'Faculty Deleted',
+    FACULTY_PROFILE_VIEWED: 'Faculty Profile Viewed',
+    SUBJECT_CREATED: 'Subject Created',
+    SUBJECT_DELETED: 'Subject Deleted',
+    SUBJECT_ALLOCATED: 'Subject Allocated',
+    ALLOCATION_REMOVED: 'Allocation Removed',
+    COURSE_ASSIGNED: 'Course Assigned',
+    COURSE_REMOVED: 'Course Removed',
+    ATTENDANCE_MARKED: 'Attendance Marked',
+    ATTENDANCE_UPDATED: 'Attendance Updated',
+    ATTENDANCE_SESSION_DELETED: 'Attendance Session Deleted',
+    ATTENDANCE_REPORT_VIEWED: 'Attendance Report Viewed',
+    ATTENDANCE_REPORT_DOWNLOADED: 'Attendance Report Downloaded',
+    ASSESSMENT_CREATED: 'Assessment Created',
+    RESULTS_UPLOADED: 'Results Uploaded',
+    MARKS_BATCH_SAVED: 'Marks Saved (Batch)',
+    FEE_INITIALIZED: 'Fee Initialized',
+    FEE_PAYMENT_RECORDED: 'Fee Payment Recorded',
+    FEE_TOTAL_UPDATED: 'Fee Total Updated',
+    FEE_REMINDER_CREATED: 'Fee Reminder Created',
+    FEE_REMINDER_DELETED: 'Fee Reminder Deleted',
+    FEE_REMINDER_DEACTIVATED: 'Fee Reminder Deactivated',
+    SCHOLARSHIP_UPDATED: 'Scholarship Updated',
+    NOTICE_CREATED: 'Notice Created',
+    TIMETABLE_UPLOADED: 'Timetable Uploaded',
+    FACULTY_TIMETABLE_UPLOADED: 'Faculty Timetable Uploaded',
+    EXAM_SCHEDULE_UPLOADED: 'Exam Schedule Uploaded',
+    COLLEGE_CALENDAR_UPLOADED: 'College Calendar Uploaded',
+    COLLEGE_CALENDAR_DELETED: 'College Calendar Deleted',
+    ACADEMIC_SCHEDULE_UPLOADED: 'Academic Schedule Uploaded',
+    ACADEMIC_SCHEDULE_DELETED: 'Academic Schedule Deleted',
+    RESOURCE_UPLOADED: 'Resource Uploaded',
+    RESOURCE_DOWNLOADED: 'Resource Downloaded',
+    RESOURCE_DELETED: 'Resource Deleted',
+    PD_ENTRY_ADDED: 'PD Entry Added',
+    PD_ENTRY_DELETED: 'PD Entry Deleted',
+    GPA_ENTERED: 'GPA Entered',
+    GPA_BATCH_ENTERED: 'GPA Entered (Batch)',
+    DATA_VIEWED: 'Data Viewed',
+    ERROR: 'Error',
+    UNKNOWN: 'Unknown',
+};
 
 const ActivityLogs = () => {
     const navigate = useNavigate();
@@ -140,7 +229,7 @@ const ActivityLogs = () => {
 
     const getActionBadge = (action) => {
         const color = ACTION_COLORS[action] || 'bg-gray-100 text-gray-600';
-        const label = action ? action.replace(/_/g, ' ') : 'UNKNOWN';
+        const label = ACTION_LABELS[action] || (action ? action.replace(/_/g, ' ') : 'UNKNOWN');
         return (
             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${color}`}>
                 {label}
@@ -259,7 +348,7 @@ const ActivityLogs = () => {
                                 >
                                     <option value="">All Actions</option>
                                     {actionOptions.map(a => (
-                                        <option key={a} value={a}>{a.replace(/_/g, ' ')}</option>
+                                        <option key={a} value={a}>{ACTION_LABELS[a] || a.replace(/_/g, ' ')}</option>
                                     ))}
                                 </select>
                             </div>

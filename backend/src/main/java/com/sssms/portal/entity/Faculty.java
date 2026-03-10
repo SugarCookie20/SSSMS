@@ -27,6 +27,8 @@ public class Faculty {
     private String middleName;
     private String lastName;
 
+    private LocalDate dob;
+
     private String designation;
     private String department;
     private String qualification;

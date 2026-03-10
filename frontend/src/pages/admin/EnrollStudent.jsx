@@ -10,7 +10,6 @@ const EnrollStudent = () => {
     middleName: "",
     lastName: "",
     email: "",
-    password: "password123",
     prn: "",
     department: "Architecture",
     academicYear: "FIRST_YEAR",
@@ -38,8 +37,8 @@ const EnrollStudent = () => {
     setStatus({ type: "", message: "" });
 
     try {
-      await api.post("/admin/enroll-student", formData);
-      setStatus({ type: "success", message: "Student enrolled successfully!" });
+      const response = await api.post("/admin/enroll-student", formData);
+      setStatus({ type: "success", message: typeof response.data === 'string' ? response.data : "Student enrolled successfully!" });
       setFormData({
         ...formData,
         firstName: "",
@@ -50,7 +49,8 @@ const EnrollStudent = () => {
         aadharNo: "",
         abcId: "",
         grNo: "",
-        coaEnrollmentNo: ""
+        coaEnrollmentNo: "",
+        dob: "",
       });
     } catch (error) {
       setStatus({

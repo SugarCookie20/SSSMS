@@ -188,6 +188,7 @@ public class FacultyController {
             response.put("firstName", faculty.getFirstName());
             response.put("lastName", faculty.getLastName());
             response.put("email", user.getEmail());
+            response.put("dob", faculty.getDob());
             response.put("designation", faculty.getDesignation());
             response.put("department", faculty.getDepartment());
             response.put("qualification", faculty.getQualification());

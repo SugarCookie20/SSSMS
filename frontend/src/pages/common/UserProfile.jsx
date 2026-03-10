@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../auth/useAuth';
 import api from '../../api/axiosConfig';
-import { User, Mail, BookOpen, Calendar, Phone, ArrowLeft, GraduationCap, ShieldCheck, FileText, Award } from 'lucide-react';
+import { User, Mail, BookOpen, Calendar, Phone, ArrowLeft, GraduationCap, ShieldCheck, FileText, Award, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const UserProfile = () => {
@@ -9,6 +9,11 @@ const UserProfile = () => {
     const navigate = useNavigate();
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
+
+    // Change Password State
+    const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    const [passwordStatus, setPasswordStatus] = useState({ type: '', message: '' });
+    const [changingPassword, setChangingPassword] = useState(false);
 
     // Determine Role Colors
     const isFaculty = user?.role?.includes('FACULTY');
@@ -30,9 +35,6 @@ const UserProfile = () => {
                         email: user.email,
                         department: "Management",
                         designation: "System Admin",
-                        qualification: "N/A",
-                        joiningDate: new Date().toISOString(),
-                        subjects: []
                     });
                 }
             } catch (error) {
@@ -47,6 +49,32 @@ const UserProfile = () => {
 
     if (loading) return <div className="p-8 text-gray-500">Loading Profile...</div>;
     if (!profile) return <div className="p-8 text-red-500">Profile unavailable.</div>;
+
+    const handleChangePassword = async (e) => {
+        e.preventDefault();
+        setPasswordStatus({ type: '', message: '' });
+        if (passwordData.newPassword !== passwordData.confirmPassword) {
+            setPasswordStatus({ type: 'error', message: 'New passwords do not match.' });
+            return;
+        }
+        if (passwordData.newPassword.length < 6) {
+            setPasswordStatus({ type: 'error', message: 'New password must be at least 6 characters.' });
+            return;
+        }
+        setChangingPassword(true);
+        try {
+            await api.post('/auth/change-password', {
+                currentPassword: passwordData.currentPassword,
+                newPassword: passwordData.newPassword,
+            });
+            setPasswordStatus({ type: 'success', message: 'Password changed successfully!' });
+            setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+        } catch (error) {
+            setPasswordStatus({ type: 'error', message: error.response?.data || 'Failed to change password.' });
+        } finally {
+            setChangingPassword(false);
+        }
+    };
 
     return (
         <div className="max-w-5xl mx-auto">
@@ -78,44 +106,55 @@ const UserProfile = () => {
             {/* 2. Details Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                {/* Qualification Card */}
-                <div className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm h-full">
-                    <h3 className="text-lg font-bold mb-4 flex items-center text-gray-900">
-                        <GraduationCap className={`w-5 h-5 mr-2 text-${roleColor}-600`}/> Qualification
-                    </h3>
-                    <p className="text-gray-600 mb-8 leading-relaxed">
-                        {profile.qualification || "Not Provided"}
-                    </p>
+                {/* Qualification & Dates Card - Faculty only */}
+                {isFaculty && (
+                    <div className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm h-full">
+                        <h3 className="text-lg font-bold mb-4 flex items-center text-gray-900">
+                            <GraduationCap className={`w-5 h-5 mr-2 text-${roleColor}-600`}/> Qualification
+                        </h3>
+                        <p className="text-gray-600 mb-8 leading-relaxed">
+                            {profile.qualification || "Not Provided"}
+                        </p>
 
-                    <h3 className="text-lg font-bold mb-4 flex items-center text-gray-900">
-                        <Calendar className={`w-5 h-5 mr-2 text-${roleColor}-600`}/> Date of Joining
-                    </h3>
-                    <p className="text-gray-600">
-                        {profile.joiningDate ? new Date(profile.joiningDate).toLocaleDateString() : "N/A"}
-                    </p>
-                </div>
+                        <h3 className="text-lg font-bold mb-4 flex items-center text-gray-900">
+                            <Calendar className={`w-5 h-5 mr-2 text-${roleColor}-600`}/> Date of Birth
+                        </h3>
+                        <p className="text-gray-600 mb-8">
+                            {profile.dob ? new Date(profile.dob).toLocaleDateString() : "Not Provided"}
+                        </p>
 
-                {/* Workload Card */}
-                <div className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm h-full">
-                    <h3 className="text-lg font-bold mb-6 flex items-center text-gray-900">
-                        <BookOpen className={`w-5 h-5 mr-2 text-${roleColor}-600`}/> Current Teaching Load
-                    </h3>
+                        <h3 className="text-lg font-bold mb-4 flex items-center text-gray-900">
+                            <Calendar className={`w-5 h-5 mr-2 text-${roleColor}-600`}/> Date of Joining
+                        </h3>
+                        <p className="text-gray-600">
+                            {profile.joiningDate ? new Date(profile.joiningDate).toLocaleDateString() : "N/A"}
+                        </p>
+                    </div>
+                )}
 
-                    {profile.subjects && profile.subjects.length > 0 ? (
-                        <div className="space-y-3">
-                            {profile.subjects.map((sub, i) => (
-                                <div key={i} className="p-4 bg-gray-50 rounded-lg text-sm font-medium text-gray-700 border border-gray-100 flex items-center">
-                                    <div className={`w-2 h-2 bg-${roleColor}-500 rounded-full mr-3`}></div>
-                                    {sub}
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="p-6 text-center bg-gray-50 rounded-lg border border-dashed border-gray-200">
-                            <p className="text-gray-400 text-sm italic">No active subjects assigned.</p>
-                        </div>
-                    )}
-                </div>
+                {/* Workload Card - Faculty only */}
+                {isFaculty && (
+                    <div className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm h-full">
+                        <h3 className="text-lg font-bold mb-6 flex items-center text-gray-900">
+                            <BookOpen className={`w-5 h-5 mr-2 text-${roleColor}-600`}/> Current Teaching Load
+                        </h3>
+
+                        {profile.subjects && profile.subjects.length > 0 ? (
+                            <div className="space-y-3">
+                                {profile.subjects.map((sub, i) => (
+                                    <div key={i} className="p-4 bg-gray-50 rounded-lg text-sm font-medium text-gray-700 border border-gray-100 flex items-center">
+                                        <div className={`w-2 h-2 bg-${roleColor}-500 rounded-full mr-3`}></div>
+                                        {sub}
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="p-6 text-center bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                                <p className="text-gray-400 text-sm italic">No active subjects assigned.</p>
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 {/* COA Registration - Faculty only */}
                 {isFaculty && (
@@ -194,6 +233,64 @@ const UserProfile = () => {
                     </div>
                 </div>
             )}
+
+            {/* Change Password Section */}
+            <div className="mt-6 bg-white rounded-xl border border-gray-200 p-8 shadow-sm">
+                <h3 className="text-lg font-bold mb-4 flex items-center text-gray-900">
+                    <Lock className={`w-5 h-5 mr-2 text-${roleColor}-600`}/> Change Password
+                </h3>
+                {passwordStatus.message && (
+                    <div className={`p-3 mb-4 rounded-lg text-sm ${
+                        passwordStatus.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'
+                    }`}>
+                        {passwordStatus.message}
+                    </div>
+                )}
+                <form onSubmit={handleChangePassword} className="space-y-4 max-w-md">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+                        <input
+                            type="password"
+                            value={passwordData.currentPassword}
+                            onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                            className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+                        <input
+                            type="password"
+                            value={passwordData.newPassword}
+                            onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                            className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                            required
+                            minLength={6}
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+                        <input
+                            type="password"
+                            value={passwordData.confirmPassword}
+                            onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                            className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                            required
+                            minLength={6}
+                        />
+                    </div>
+                    <button
+                        type="submit"
+                        disabled={changingPassword}
+                        className={`flex items-center px-5 py-2.5 rounded-lg text-white font-medium shadow-sm transition-colors disabled:opacity-50 ${
+                            isFaculty ? 'bg-purple-600 hover:bg-purple-700' : 'bg-blue-600 hover:bg-blue-700'
+                        }`}
+                    >
+                        <Lock className="w-4 h-4 mr-2" />
+                        {changingPassword ? 'Changing...' : 'Change Password'}
+                    </button>
+                </form>
+            </div>
         </div>
     );
 };

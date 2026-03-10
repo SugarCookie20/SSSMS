@@ -1,12 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axiosConfig';
-import { User, Mail, Calendar, Book, TrendingUp, Clock, MapPin, Phone, ShieldCheck, FileText, ArrowLeft } from 'lucide-react';
+import { User, Mail, Calendar, Book, TrendingUp, Clock, MapPin, Phone, ShieldCheck, FileText, Lock, ArrowLeft } from 'lucide-react';
 
 const StudentProfile = () => {
     const navigate = useNavigate();
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
+
+    // Change Password State
+    const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    const [passwordStatus, setPasswordStatus] = useState({ type: '', message: '' });
+    const [changingPassword, setChangingPassword] = useState(false);
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -24,6 +29,32 @@ const StudentProfile = () => {
 
     if (loading) return <div className="p-8 text-gray-500">Loading Profile...</div>;
     if (!profile) return <div className="p-8 text-red-500">Profile not found.</div>;
+
+    const handleChangePassword = async (e) => {
+        e.preventDefault();
+        setPasswordStatus({ type: '', message: '' });
+        if (passwordData.newPassword !== passwordData.confirmPassword) {
+            setPasswordStatus({ type: 'error', message: 'New passwords do not match.' });
+            return;
+        }
+        if (passwordData.newPassword.length < 6) {
+            setPasswordStatus({ type: 'error', message: 'New password must be at least 6 characters.' });
+            return;
+        }
+        setChangingPassword(true);
+        try {
+            await api.post('/auth/change-password', {
+                currentPassword: passwordData.currentPassword,
+                newPassword: passwordData.newPassword,
+            });
+            setPasswordStatus({ type: 'success', message: 'Password changed successfully!' });
+            setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+        } catch (error) {
+            setPasswordStatus({ type: 'error', message: error.response?.data || 'Failed to change password.' });
+        } finally {
+            setChangingPassword(false);
+        }
+    };
 
     const stats = [
         { label: 'Current GPA', value: profile.cgpa || 'N/A', icon: TrendingUp, color: 'text-green-600', bg: 'bg-green-50' },
@@ -109,6 +140,62 @@ const StudentProfile = () => {
                         <DetailItem label="Permanent Address" value={profile.address} icon={MapPin} />
                     </div>
                 </div>
+            </div>
+
+            {/* Change Password Section */}
+            <div className="mt-6 bg-white rounded-xl border border-gray-200 p-8 shadow-sm">
+                <h3 className="text-lg font-bold mb-4 flex items-center text-gray-900">
+                    <Lock className="w-5 h-5 mr-2 text-indigo-600" /> Change Password
+                </h3>
+                {passwordStatus.message && (
+                    <div className={`p-3 mb-4 rounded-lg text-sm ${
+                        passwordStatus.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'
+                    }`}>
+                        {passwordStatus.message}
+                    </div>
+                )}
+                <form onSubmit={handleChangePassword} className="space-y-4 max-w-md">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+                        <input
+                            type="password"
+                            value={passwordData.currentPassword}
+                            onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                            className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+                        <input
+                            type="password"
+                            value={passwordData.newPassword}
+                            onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                            className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                            required
+                            minLength={6}
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+                        <input
+                            type="password"
+                            value={passwordData.confirmPassword}
+                            onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                            className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                            required
+                            minLength={6}
+                        />
+                    </div>
+                    <button
+                        type="submit"
+                        disabled={changingPassword}
+                        className="flex items-center px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium shadow-sm transition-colors disabled:opacity-50"
+                    >
+                        <Lock className="w-4 h-4 mr-2" />
+                        {changingPassword ? 'Changing...' : 'Change Password'}
+                    </button>
+                </form>
             </div>
         </div>
     );

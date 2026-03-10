@@ -3,6 +3,7 @@ package com.sssms.portal.controller;
 import com.sssms.portal.config.JwtUtil;
 import com.sssms.portal.dto.AuthenticationRequest;
 import com.sssms.portal.dto.RegisterRequest;
+import com.sssms.portal.dto.request.ChangePasswordRequest;
 import com.sssms.portal.entity.Role;
 import com.sssms.portal.entity.User;
 import com.sssms.portal.repository.FacultyRepository;
@@ -16,6 +17,7 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -30,6 +32,7 @@ public class AuthController {
     private final AuthService service;
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     // Inject Profile Repositories to fetch Names
     private final FacultyRepository facultyRepository;
@@ -100,4 +103,32 @@ public class AuthController {
                         .body("User not found");
             }
         }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody ChangePasswordRequest request) {
+        if (userDetails == null) {
+            return ResponseEntity.status(401).body("Not authenticated");
+        }
+
+        User user = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Verify current password
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPasswordHash())) {
+            return ResponseEntity.badRequest().body("Current password is incorrect");
+        }
+
+        // Validate new password
+        if (request.getNewPassword() == null || request.getNewPassword().length() < 6) {
+            return ResponseEntity.badRequest().body("New password must be at least 6 characters");
+        }
+
+        // Update password
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+
+        return ResponseEntity.ok("Password changed successfully");
+    }
 }

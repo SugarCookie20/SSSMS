@@ -10,7 +10,7 @@ const EnrollFaculty = () => {
     middleName: "",
     lastName: "",
     email: "",
-    password: "password123",
+    dob: "",
     designation: "Assistant Professor",
     department: "Architecture",
     qualification: "",
@@ -35,10 +35,10 @@ const EnrollFaculty = () => {
     setStatus({ type: "", message: "" });
 
     try {
-      await api.post("/admin/enroll-faculty", formData);
+      const response = await api.post("/admin/enroll-faculty", formData);
       setStatus({
         type: "success",
-        message: "Faculty member enrolled successfully!",
+        message: typeof response.data === 'string' ? response.data : "Faculty member enrolled successfully!",
       });
       setFormData({
         ...formData,
@@ -46,6 +46,7 @@ const EnrollFaculty = () => {
         middleName: "",
         lastName: "",
         email: "",
+        dob: "",
         qualification: "",
         coaRegistrationNo: "",
         aadharNo: "",
@@ -114,6 +115,8 @@ const EnrollFaculty = () => {
                 <div><label className="block text-sm font-medium mb-1">Last Name</label><input name="lastName" value={formData.lastName} onChange={handleChange} className="w-full p-2 border rounded" required /></div>
 
                 <div className="md:col-span-2"><label className="block text-sm font-medium mb-1">Email Address</label><input type="email" name="email" value={formData.email} onChange={handleChange} className="w-full p-2 border rounded" required /></div>
+                <div><label className="block text-sm font-medium mb-1">Date of Birth</label><input type="date" name="dob" value={formData.dob} onChange={handleChange} className="w-full p-2 border rounded" required /></div>
+
                 <div><label className="block text-sm font-medium mb-1">Phone Number</label><input name="phoneNumber" value={formData.phoneNumber} onChange={handleChange} className="w-full p-2 border rounded" /></div>
 
                 <div><label className="block text-sm font-medium mb-1">Aadhar Number</label><input name="aadharNo" value={formData.aadharNo} onChange={handleChange} className="w-full p-2 border rounded" /></div>
