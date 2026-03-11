@@ -9,6 +9,7 @@ const ManageFaculty = () => {
     // Data State
     const [facultyList, setFacultyList] = useState([]);
     const [subjects, setSubjects] = useState([]);
+    const [allAllocations, setAllAllocations] = useState([]); // All allocations across all faculty
 
     // Selection State
     const [selectedFaculty, setSelectedFaculty] = useState(null);
@@ -28,12 +29,14 @@ const ManageFaculty = () => {
 
     const loadData = async () => {
         try {
-            const [facRes, subRes] = await Promise.all([
+            const [facRes, subRes, allocRes] = await Promise.all([
                 api.get('/admin/faculty/all'),
-                api.get('/admin/subjects')
+                api.get('/admin/subjects'),
+                api.get('/admin/allocations/all')
             ]);
             setFacultyList(facRes.data);
             setSubjects(subRes.data);
+            setAllAllocations(allocRes.data);
         } catch (error) {
             console.error("Failed to load data", error);
         }
@@ -57,17 +60,26 @@ const ManageFaculty = () => {
         if (!subjectId) return;
 
         try {
-            await api.post('/admin/allocate-subject', {
+            const res = await api.post('/admin/allocate-subject', {
                 facultyId: selectedFaculty.id,
                 subjectId: subjectId
             });
 
-            setStatus({ type: 'success', message: 'Subject Assigned Successfully!' });
-            setSubjectId('');
-
-            const response = await api.get(`/admin/faculty/${selectedFaculty.id}/allocations`);
-            setAllocations(response.data);
-            setTimeout(() => setStatus({ type: '', message: '' }), 3000);
+            const msg = res.data;
+            if (msg === 'Subject Assigned!') {
+                setStatus({ type: 'success', message: msg });
+                setSubjectId('');
+                const [response, allocRes] = await Promise.all([
+                    api.get(`/admin/faculty/${selectedFaculty.id}/allocations`),
+                    api.get('/admin/allocations/all')
+                ]);
+                setAllocations(response.data);
+                setAllAllocations(allocRes.data);
+                setTimeout(() => setStatus({ type: '', message: '' }), 3000);
+            } else {
+                // Backend returned a rejection message
+                setStatus({ type: 'error', message: msg });
+            }
         } catch (error) {
             setStatus({ type: 'error', message: error.response?.data || 'Failed to assign subject.' });
         }
@@ -78,8 +90,12 @@ const ManageFaculty = () => {
         try {
             await api.delete(`/admin/allocation/${deleteId}`);
             setStatus({ type: 'success', message: 'Assignment Removed' });
-            const response = await api.get(`/admin/faculty/${selectedFaculty.id}/allocations`);
+            const [response, allocRes] = await Promise.all([
+                api.get(`/admin/faculty/${selectedFaculty.id}/allocations`),
+                api.get('/admin/allocations/all')
+            ]);
             setAllocations(response.data);
+            setAllAllocations(allocRes.data);
             setTimeout(() => setStatus({ type: '', message: '' }), 3000);
         } catch (error) {
             setStatus({ type: 'error', message: 'Failed to remove assignment.' });
@@ -226,11 +242,14 @@ const ManageFaculty = () => {
                                     required
                                 >
                                     <option value="">-- Choose Subject --</option>
-                                    {subjects.map(s => (
-                                        <option key={s.id} value={s.id}>
-                                            {s.name} ({s.code}) - {formatYear(s.academicYear)}
-                                        </option>
-                                    ))}
+                                    {subjects.map(s => {
+                                        const taken = allAllocations.find(a => a.subjectCode === s.code);
+                                        return (
+                                            <option key={s.id} value={s.id} disabled={!!taken}>
+                                                {s.name} ({s.code}) - {formatYear(s.academicYear)}{taken ? ` [Assigned to ${taken.facultyName}]` : ''}
+                                            </option>
+                                        );
+                                    })}
                                 </select>
                             </div>
                             <button type="submit" className="w-full bg-blue-600 text-white py-2.5 rounded-lg font-medium hover:bg-blue-700 flex items-center justify-center transition-colors">

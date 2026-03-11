@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -161,11 +162,22 @@ public class AdminService {
         Faculty faculty = facultyRepository.findById(request.getFacultyId()).orElseThrow();
         Subject subject = subjectRepository.findById(request.getSubjectId()).orElseThrow();
 
-        // Prevent Duplicate Allocation
-        boolean exists = allocationRepository.findAll().stream()
+        // Prevent Duplicate Allocation (same faculty, same subject)
+        boolean existsForThisFaculty = allocationRepository.findAll().stream()
             .anyMatch(a -> a.getFaculty().getId().equals(faculty.getId()) && a.getSubject().getId().equals(subject.getId()));
 
-        if (exists) return "Subject already assigned to this faculty";
+        if (existsForThisFaculty) return "Subject already assigned to this faculty.";
+
+        // Prevent subject from being assigned to multiple faculty at the same time
+        Optional<SubjectAllocation> existingAllocation = allocationRepository.findAll().stream()
+            .filter(a -> a.getSubject().getId().equals(subject.getId()))
+            .findFirst();
+
+        if (existingAllocation.isPresent()) {
+            Faculty currentFaculty = existingAllocation.get().getFaculty();
+            return "This subject is already assigned to " + currentFaculty.getFirstName() + " " + currentFaculty.getLastName()
+                    + ". Remove it from their workload first before reassigning.";
+        }
 
         SubjectAllocation allocation = SubjectAllocation.builder()
                 .faculty(faculty)
