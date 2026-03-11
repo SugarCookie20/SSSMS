@@ -78,6 +78,16 @@ const AttendanceSheet = () => {
     };
 
     const handleSubmit = async () => {
+        // Validate date is not in the future
+        if (!date) {
+            setStatus({ type: 'error', message: 'Please select a date.' });
+            return;
+        }
+        if (new Date(date) > new Date()) {
+            setStatus({ type: 'error', message: 'Attendance date cannot be in the future.' });
+            return;
+        }
+
         setSubmitting(true);
         setStatus({ type: '', message: '' });
         const payload = {

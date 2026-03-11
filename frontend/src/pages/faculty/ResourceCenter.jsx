@@ -34,6 +34,15 @@ const ResourceCenter = () => {
         e.preventDefault();
         if (!file || !title) return;
 
+        if (title.length > 150) {
+            setStatus({ type: 'error', message: 'Title must be under 150 characters.' });
+            return;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+            setStatus({ type: 'error', message: 'File size must be under 10 MB.' });
+            return;
+        }
+
         setUploading(true);
         setStatus({ type: '', message: '' }); // Clear old messages
 

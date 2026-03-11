@@ -72,6 +72,8 @@ const AdminScheduleManager = () => {
 
     const handleUpload = async (e) => {
         e.preventDefault();
+        if (!file) { setStatus({ type: 'error', msg: 'Please select a file.' }); return; }
+        if (file.size > 10 * 1024 * 1024) { setStatus({ type: 'error', msg: 'File size must be under 10 MB.' }); return; }
         setLoading(true);
         setStatus(null);
 

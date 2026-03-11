@@ -14,6 +14,7 @@ const GPALedger = () => {
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
+    const [rowErrors, setRowErrors] = useState({}); // { studentId: errorMsg }
 
     // Max semesters allowed per academic year (2 sems per year)
     const maxSemesterMap = {
@@ -89,10 +90,9 @@ const GPALedger = () => {
     };
 
     const handleSGPAChange = (studentId, value) => {
-        setSgpaValues(prev => ({
-            ...prev,
-            [studentId]: value
-        }));
+        setSgpaValues(prev => ({ ...prev, [studentId]: value }));
+        // Clear row error on change
+        if (rowErrors[studentId]) setRowErrors(prev => ({ ...prev, [studentId]: null }));
     };
 
     const handleStatusChange = (studentId, value) => {
@@ -105,9 +105,31 @@ const GPALedger = () => {
     const handleSaveAll = async () => {
         setSaving(true);
         setMessage({ type: '', text: '' });
+        setRowErrors({});
+
+        // Validate SGPA values
+        const errs = {};
+        let hasError = false;
+        students.forEach(student => {
+            const val = sgpaValues[student.id];
+            if (val !== undefined && val !== '') {
+                const n = parseFloat(val);
+                if (isNaN(n) || n < 0 || n > 10) {
+                    errs[student.id] = 'SGPA must be between 0 and 10';
+                    hasError = true;
+                }
+            }
+        });
+
+        if (hasError) {
+            setRowErrors(errs);
+            setMessage({ type: 'error', text: 'Some SGPA values are out of range (0–10). Fix highlighted rows.' });
+            setSaving(false);
+            return;
+        }
 
         const batch = students
-            .filter(student => sgpaValues[student.id]) // Only send students with SGPA entered
+            .filter(student => sgpaValues[student.id])
             .map(student => ({
                 studentId: student.id,
                 semester: selectedSemester,
@@ -258,8 +280,9 @@ const GPALedger = () => {
                                                     placeholder="0.00"
                                                     value={sgpaValues[student.id] || ''}
                                                     onChange={(e) => handleSGPAChange(student.id, e.target.value)}
-                                                    className="w-24 p-2 border border-gray-300 rounded text-center font-bold focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    className={`w-24 p-2 border rounded text-center font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 ${rowErrors[student.id] ? 'border-red-400 bg-red-50' : 'border-gray-300'}`}
                                                 />
+                                                {rowErrors[student.id] && <p className="text-red-500 text-xs mt-1">{rowErrors[student.id]}</p>}
                                             </td>
                                             <td className="px-6 py-4 text-center">
                                                 <select

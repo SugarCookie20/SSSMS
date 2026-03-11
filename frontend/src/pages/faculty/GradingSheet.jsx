@@ -16,7 +16,6 @@ const EXAM_TYPES = [
     { group: 'External Assessment (ESE)', options: [
         { value: 'THEORY_ESE', label: 'Theory ESE' },
         { value: 'PRACTICAL_ESE', label: 'Practical ESE' },
-        { value: 'SESSIONAL_ESE', label: 'Sessional/Studio ESE' },
     ]},
 ];
 
@@ -31,6 +30,7 @@ const GradingSheet = () => {
 
     const [saving, setSaving] = useState(false);
     const [status, setStatus] = useState(null);
+    const [rowErrors, setRowErrors] = useState({}); // { studentId: errorMsg }
 
     // Edit mode state (like attendance)
     const [editMode, setEditMode] = useState(false);
@@ -95,14 +95,43 @@ const GradingSheet = () => {
 
     // 3. Handle Mark Input
     const handleMarkChange = (studentId, value) => {
-        setMarks(prev => ({
-            ...prev,
-            [studentId]: value
-        }));
+        setMarks(prev => ({ ...prev, [studentId]: value }));
+        if (rowErrors[studentId]) setRowErrors(prev => ({ ...prev, [studentId]: null }));
     };
 
     // 4. Submit Marks (works for both create and update — backend upserts)
     const handleSubmit = async () => {
+        // Validate maxMarks
+        const max = parseFloat(maxMarks);
+        if (isNaN(max) || max <= 0) {
+            setStatus({ type: 'error', msg: 'Max marks must be greater than 0.' });
+            return;
+        }
+
+        // Validate each student's marks
+        const errs = {};
+        let hasError = false;
+        students.forEach(s => {
+            const val = marks[s.id];
+            if (val !== undefined && val !== '') {
+                const n = parseFloat(val);
+                if (isNaN(n) || n < 0) {
+                    errs[s.id] = 'Marks cannot be negative';
+                    hasError = true;
+                } else if (n > max) {
+                    errs[s.id] = `Cannot exceed max (${max})`;
+                    hasError = true;
+                }
+            }
+        });
+
+        if (hasError) {
+            setRowErrors(errs);
+            setStatus({ type: 'error', msg: 'Some marks exceed the maximum. Fix highlighted rows.' });
+            return;
+        }
+        setRowErrors({});
+
         setSaving(true);
         setStatus(null);
 
@@ -228,9 +257,10 @@ const GradingSheet = () => {
                                     type="number"
                                     placeholder="0"
                                     value={marks[s.id] !== undefined ? marks[s.id] : ''}
-                                    className={`w-full p-2 border rounded text-center font-bold ${editMode ? 'border-orange-300 bg-orange-50' : ''}`}
+                                    className={`w-full p-2 border rounded text-center font-bold ${rowErrors[s.id] ? 'border-red-400 bg-red-50' : editMode ? 'border-orange-300 bg-orange-50' : ''}`}
                                     onChange={(e) => handleMarkChange(s.id, e.target.value)}
                                 />
+                                {rowErrors[s.id] && <p className="text-red-500 text-xs mt-1">{rowErrors[s.id]}</p>}
                             </td>
                         </tr>
                     ))}

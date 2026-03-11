@@ -136,6 +136,14 @@ const ManageStudents = () => {
     const handleEditChange = (e) => { setEditForm({ ...editForm, [e.target.name]: e.target.value }); };
 
     const saveEdit = async () => {
+        if (!editForm.firstName || !/^[A-Za-z\s]{2,50}$/.test(editForm.firstName)) {
+            setStatus({ type: 'error', msg: 'First name: letters only, 2–50 chars.' });
+            return;
+        }
+        if (!editForm.lastName || !/^[A-Za-z\s]{2,50}$/.test(editForm.lastName)) {
+            setStatus({ type: 'error', msg: 'Last name: letters only, 2–50 chars.' });
+            return;
+        }
         try {
             await api.put(`/admin/student/${editingId}`, editForm);
             setEditingId(null);

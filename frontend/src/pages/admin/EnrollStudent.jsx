@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axiosConfig";
 import { UserPlus, Save, XCircle, ArrowLeft } from "lucide-react";
+import { isValidPhone, isValidEmail, isValidAadhar, isValidBloodGroup, isNameValid, isOptionalName, isRequired } from "../../utils/validators";
 
 const EnrollStudent = () => {
   const navigate = useNavigate();
@@ -26,13 +27,53 @@ const EnrollStudent = () => {
   });
   const [status, setStatus] = useState({ type: "", message: "" });
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    if (errors[e.target.name]) setErrors(prev => ({ ...prev, [e.target.name]: null }));
+  };
+
+  const validate = () => {
+    const e = {};
+    if (!isRequired(formData.firstName) || !isNameValid(formData.firstName)) e.firstName = 'Required. Letters only, 2–50 chars.';
+    if (!isOptionalName(formData.middleName)) e.middleName = 'Letters only if provided.';
+    if (!isRequired(formData.lastName) || !isNameValid(formData.lastName)) e.lastName = 'Required. Letters only, 2–50 chars.';
+    if (!isRequired(formData.email) || !isValidEmail(formData.email)) e.email = 'Valid email is required.';
+    if (!isRequired(formData.prn)) e.prn = 'PRN is required.';
+    if (!isRequired(formData.dob)) {
+      e.dob = 'Date of birth is required.';
+    } else {
+      const dob = new Date(formData.dob);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (dob >= today) {
+        e.dob = 'Date of birth must be in the past.';
+      } else {
+        const age = today.getFullYear() - dob.getFullYear() - (today < new Date(today.getFullYear(), dob.getMonth(), dob.getDate()) ? 1 : 0);
+        if (age < 15) e.dob = 'Student must be at least 15 years old.';
+        if (age > 100) e.dob = 'Please enter a valid date of birth.';
+      }
+    }
+    if (formData.phoneNumber && !isValidPhone(formData.phoneNumber)) e.phoneNumber = 'Must be exactly 10 digits.';
+    if (formData.parentPhoneNumber && !isValidPhone(formData.parentPhoneNumber)) e.parentPhoneNumber = 'Must be exactly 10 digits.';
+    if (formData.phoneNumber && formData.parentPhoneNumber && formData.phoneNumber === formData.parentPhoneNumber) {
+      e.parentPhoneNumber = 'Parent and student numbers cannot be the same.';
+    }
+    if (!isValidAadhar(formData.aadharNo)) e.aadharNo = 'Must be exactly 12 digits.';
+    if (!isValidBloodGroup(formData.bloodGroup)) e.bloodGroup = 'Invalid. Use format like A+, O-, AB+.';
+    return e;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      setStatus({ type: "error", message: "Please fix the highlighted errors." });
+      return;
+    }
+    setErrors({});
     setLoading(true);
     setStatus({ type: "", message: "" });
 
@@ -40,17 +81,23 @@ const EnrollStudent = () => {
       const response = await api.post("/admin/enroll-student", formData);
       setStatus({ type: "success", message: typeof response.data === 'string' ? response.data : "Student enrolled successfully!" });
       setFormData({
-        ...formData,
         firstName: "",
         middleName: "",
         lastName: "",
         email: "",
         prn: "",
+        department: "Architecture",
+        academicYear: formData.academicYear,
+        phoneNumber: "",
+        address: "",
+        dob: "",
+        coaEnrollmentNo: "",
+        grNo: "",
         aadharNo: "",
         abcId: "",
-        grNo: "",
-        coaEnrollmentNo: "",
-        dob: "",
+        bloodGroup: "",
+        parentPhoneNumber: "",
+        admissionCategory: formData.admissionCategory,
       });
     } catch (error) {
       setStatus({
@@ -63,6 +110,9 @@ const EnrollStudent = () => {
       setLoading(false);
     }
   };
+
+  const fieldError = (name) => errors[name] ? <p className="text-red-500 text-xs mt-1">{errors[name]}</p> : null;
+  const inputClass = (name, extra = '') => `w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none ${errors[name] ? 'border-red-400 bg-red-50' : 'border-gray-300'} ${extra}`;
 
   return (
       <div className="max-w-5xl mx-auto">
@@ -117,9 +167,10 @@ const EnrollStudent = () => {
                     name="firstName"
                     value={formData.firstName}
                     onChange={handleChange}
-                    className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    className={inputClass('firstName')}
                     required
                 />
+                {fieldError('firstName')}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -129,8 +180,9 @@ const EnrollStudent = () => {
                     name="middleName"
                     value={formData.middleName}
                     onChange={handleChange}
-                    className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    className={inputClass('middleName')}
                 />
+                {fieldError('middleName')}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -140,9 +192,10 @@ const EnrollStudent = () => {
                     name="lastName"
                     value={formData.lastName}
                     onChange={handleChange}
-                    className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    className={inputClass('lastName')}
                     required
                 />
+                {fieldError('lastName')}
               </div>
 
               {/* Row 2 */}
@@ -155,9 +208,11 @@ const EnrollStudent = () => {
                     type="date"
                     value={formData.dob}
                     onChange={handleChange}
-                    className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    className={inputClass('dob')}
+                    max={new Date().toISOString().split('T')[0]}
                     required
                 />
+                {fieldError('dob')}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -168,8 +223,9 @@ const EnrollStudent = () => {
                     placeholder="e.g. O+"
                     value={formData.bloodGroup}
                     onChange={handleChange}
-                    className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    className={inputClass('bloodGroup')}
                 />
+                {fieldError('bloodGroup')}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -179,8 +235,9 @@ const EnrollStudent = () => {
                     name="aadharNo"
                     value={formData.aadharNo}
                     onChange={handleChange}
-                    className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    className={inputClass('aadharNo')}
                 />
+                {fieldError('aadharNo')}
               </div>
             </div>
           </div>
@@ -203,9 +260,10 @@ const EnrollStudent = () => {
                     type="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    className={inputClass('email')}
                     required
                 />
+                {fieldError('email')}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -215,8 +273,10 @@ const EnrollStudent = () => {
                     name="phoneNumber"
                     value={formData.phoneNumber}
                     onChange={handleChange}
-                    className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    className={inputClass('phoneNumber')}
+                    maxLength={10}
                 />
+                {fieldError('phoneNumber')}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -226,8 +286,10 @@ const EnrollStudent = () => {
                     name="parentPhoneNumber"
                     value={formData.parentPhoneNumber}
                     onChange={handleChange}
-                    className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    className={inputClass('parentPhoneNumber')}
+                    maxLength={10}
                 />
+                {fieldError('parentPhoneNumber')}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -260,9 +322,10 @@ const EnrollStudent = () => {
                     name="prn"
                     value={formData.prn}
                     onChange={handleChange}
-                    className="w-full p-2.5 border border-gray-300 rounded-lg font-mono focus:ring-2 focus:ring-blue-500 outline-none"
+                    className={inputClass('prn', 'font-mono')}
                     required
                 />
+                {fieldError('prn')}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">

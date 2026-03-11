@@ -153,10 +153,6 @@ const StudentResults = () => {
                     <span class="mark-label">Practical</span>
                     <span class="mark-value">${subject.practicalMarks || 0}</span>
                 </div>
-                <div class="mark-row">
-                    <span class="mark-label">Sessional</span>
-                    <span class="mark-value">${subject.sessionalMarks || 0}</span>
-                </div>
                 <div class="mark-row-total-external">
                     <span>Total External</span>
                     <span>${subject.externalMarks || 0}</span>
@@ -359,10 +355,6 @@ const StudentResults = () => {
                                             <div className="flex justify-between">
                                                 <span className="text-gray-500">Practical:</span>
                                                 <span className="font-semibold text-gray-700">{subject.practicalMarks || 0}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                                <span className="text-gray-500">Sessional:</span>
-                                                <span className="font-semibold text-gray-700">{subject.sessionalMarks || 0}</span>
                                             </div>
                                             <div className="flex justify-between border-t border-indigo-100 pt-1 mt-1">
                                                 <span className="font-semibold text-indigo-700">Total:</span>

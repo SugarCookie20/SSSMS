@@ -101,6 +101,20 @@ const FeeManagement = () => {
 
     const handleCreateReminder = async (e) => {
         e.preventDefault();
+
+        if (!reminderForm.title.trim()) {
+            setStatus({ type: 'error', message: 'Reminder title is required.' });
+            return;
+        }
+        if (!reminderForm.message.trim()) {
+            setStatus({ type: 'error', message: 'Reminder message is required.' });
+            return;
+        }
+        if (reminderForm.dueDate && new Date(reminderForm.dueDate) <= new Date()) {
+            setStatus({ type: 'error', message: 'Due date must be in the future.' });
+            return;
+        }
+
         try {
             await api.post('/admin/fees/reminders', reminderForm);
             setStatus({ type: 'success', message: 'Fee Reminder sent successfully!' });
@@ -130,6 +144,17 @@ const FeeManagement = () => {
     };
 
     const handleScholarshipUpdate = async (studentId, newStatus) => {
+        if (newStatus === 'APPROVED' && scholarshipAmountInput) {
+            const amt = parseFloat(scholarshipAmountInput);
+            if (isNaN(amt) || amt <= 0) {
+                setStatus({ type: 'error', message: 'Scholarship amount must be a positive number.' });
+                return;
+            }
+            if (scholarshipModal && amt > scholarshipModal.totalFee) {
+                setStatus({ type: 'error', message: 'Scholarship amount cannot exceed the total fee.' });
+                return;
+            }
+        }
         try {
             await api.put(`/admin/fees/scholarship/${studentId}`, {
                 status: newStatus,
@@ -149,6 +174,18 @@ const FeeManagement = () => {
         e.preventDefault();
         if (!editFeeModal || !newTotalFee) return;
         setStatus({ type: '', message: '' });
+
+        const val = parseFloat(newTotalFee);
+        if (isNaN(val) || val <= 0) {
+            setStatus({ type: 'error', message: 'Total fee must be a positive number.' });
+            return;
+        }
+        const minAllowed = (editFeeModal.paidAmount || 0) + (editFeeModal.scholarshipAmount || 0);
+        if (val < minAllowed) {
+            setStatus({ type: 'error', message: `Total fee cannot be less than ₹${minAllowed.toLocaleString()} (paid + scholarship).` });
+            return;
+        }
+
         try {
             await api.put(`/admin/fees/update-total/${editFeeModal.studentId}`, {
                 totalFee: parseFloat(newTotalFee)

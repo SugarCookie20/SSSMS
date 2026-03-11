@@ -1,5 +1,3 @@
-//check
-
 package com.sssms.portal.controller;
 
 import com.sssms.portal.entity.*;

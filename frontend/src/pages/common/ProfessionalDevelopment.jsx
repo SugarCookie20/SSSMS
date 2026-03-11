@@ -80,6 +80,16 @@ const ProfessionalDevelopment = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!form.title.trim()) {
+            setStatus({ type: 'error', message: 'Title is required.' });
+            return;
+        }
+        if (form.startDate && form.endDate && new Date(form.startDate) > new Date(form.endDate)) {
+            setStatus({ type: 'error', message: 'End date must be on or after start date.' });
+            return;
+        }
+
         try {
             const url = isAdmin && selectedFacultyId
                 ? `/admin/faculty/${selectedFacultyId}/pd`

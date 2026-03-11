@@ -33,11 +33,22 @@ const AcademicSetup = () => {
     const handleSubject = async (e) => {
         e.preventDefault();
         setStatus(null);
+
+        // Validation
+        if (!subject.name || subject.name.trim().length < 2) {
+            setStatus({ type: 'error', msg: 'Subject name must be at least 2 characters.' });
+            return;
+        }
+        if (!subject.code || subject.code.trim().length < 2) {
+            setStatus({ type: 'error', msg: 'Subject code must be at least 2 characters.' });
+            return;
+        }
+
         try {
             await api.post('/admin/subjects', subject);
             setStatus({ type: 'success', msg: 'Subject Created Successfully!' });
             setSubject({ name: '', code: '', department: 'Architecture', academicYear: 'FIRST_YEAR' });
-            fetchSubjects(); // Refresh List
+            fetchSubjects();
             setTimeout(() => setStatus(null), 3000);
         } catch(e) {
             setStatus({ type: 'error', msg: 'Failed to create subject.' });

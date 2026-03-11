@@ -46,6 +46,28 @@ const NoticesPage = () => {
         e.preventDefault();
         setStatus({ type: '', message: '' });
 
+        // Validation
+        if (!title.trim()) {
+            setStatus({ type: 'error', message: 'Notice title is required.' });
+            return;
+        }
+        if (title.length > 150) {
+            setStatus({ type: 'error', message: 'Title must be under 150 characters.' });
+            return;
+        }
+        if (!content.trim()) {
+            setStatus({ type: 'error', message: 'Notice content is required.' });
+            return;
+        }
+        if (content.length > 2000) {
+            setStatus({ type: 'error', message: 'Content must be under 2000 characters.' });
+            return;
+        }
+        if (file && file.size > 10 * 1024 * 1024) {
+            setStatus({ type: 'error', message: 'File size must be under 10 MB.' });
+            return;
+        }
+
         // Use FormData for File Upload
         const formData = new FormData();
         formData.append('title', title);
