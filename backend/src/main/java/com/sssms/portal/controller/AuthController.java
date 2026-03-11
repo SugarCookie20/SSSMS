@@ -87,9 +87,13 @@ public class AuthController {
                             .map(f -> f.getFirstName() + " " + f.getLastName())
                             .orElse("Faculty Member");
                 } else if (user.getRole() == Role.STUDENT) {
-                    realName = studentRepository.findById(user.getUserId())
-                            .map(s -> s.getFirstName() + " " + s.getLastName())
-                            .orElse("Student");
+                    var studentOpt = studentRepository.findById(user.getUserId());
+                    realName = studentOpt.map(s -> s.getFirstName() + " " + s.getLastName()).orElse("Student");
+                    studentOpt.ifPresent(s -> {
+                        if (s.getAcademicYear() != null) {
+                            response.put("currentYear", s.getAcademicYear().name());
+                        }
+                    });
                 } else if (user.getRole() == Role.ADMIN) {
                     realName = "Administrator";
                 }

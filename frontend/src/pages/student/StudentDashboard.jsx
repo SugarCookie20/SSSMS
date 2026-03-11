@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 
 const StudentDashboard = () => {
-    const { user } = useAuth();
+    const { user, refreshUser } = useAuth();
     const navigate = useNavigate();
 
     const [recentNotices, setRecentNotices] = useState([]);
@@ -26,10 +26,12 @@ const StudentDashboard = () => {
     const [feeStatus, setFeeStatus] = useState(null);
     const [loading, setLoading] = useState(true);
     const [archivedYears, setArchivedYears] = useState([]);
-    const [selectedAttYear, setSelectedAttYear] = useState(null); // null = current year
+    const [selectedAttYear, setSelectedAttYear] = useState(null);
 
     useEffect(() => {
         const fetchData = async () => {
+            // Always refresh user so currentYear reflects latest promotion
+            refreshUser();
             try {
                 const noticeRes = await api.get('/notices');
                 if (noticeRes.data && noticeRes.data.length > 0) {
@@ -106,8 +108,8 @@ const StudentDashboard = () => {
     };
 
     const formatYear = (str) => {
-        if (!str) return '1';
-        return str.replace('_', ' ').replace(/(^\w|\s\w)/g, m => m.toUpperCase());
+        if (!str) return '';
+        return str.replace(/_/g, ' ').replace(/(^\w|\s\w)/g, m => m.toUpperCase());
     };
 
     if (loading) return <div className="p-8 text-gray-500">Loading Dashboard...</div>;
@@ -121,7 +123,7 @@ const StudentDashboard = () => {
                     Welcome, {user?.name || user?.email?.split('@')[0] || "Student"}
                 </h1>
                 <p className="text-sm md:text-base text-gray-600">
-                    Architecture | Year {formatYear(user?.currentYear)}
+                    Architecture{formatYear(user?.currentYear) ? ` | ${formatYear(user?.currentYear)}` : ''}
                 </p>
             </div>
 

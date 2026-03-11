@@ -13,6 +13,11 @@ const StudentLayout = () => {
 
     const [isSidebarOpen, setSidebarOpen] = useState(false);
 
+    const formatYear = (str) => {
+        if (!str) return '';
+        return str.replace(/_/g, ' ').replace(/(^\w|\s\w)/g, m => m.toUpperCase());
+    };
+
     const handleLogout = () => {
         logout();
         navigate('/login');
@@ -72,7 +77,9 @@ const StudentLayout = () => {
                                 {user?.name || "Student"}
                             </p>
                             <p className="text-xs text-gray-500 truncate">{user?.email}</p>
-                            <p className="text-xs text-gray-400 mt-0.5">Year {user?.currentYear || '1'}</p>
+                            {formatYear(user?.currentYear) && (
+                                <p className="text-xs text-gray-400 mt-0.5">{formatYear(user?.currentYear)}</p>
+                            )}
                         </div>
                     </div>
                 </Link>
